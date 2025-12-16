@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+
 @Composable
 fun Register() {
     var username by remember { mutableStateOf("") }
@@ -102,68 +103,6 @@ fun Register() {
                 Column(
                     modifier = Modifier.padding(20.dp)
                 ) {
-                    @Composable
-                    fun CustomTextField(
-                        label: String,
-                        value: String,
-                        onValueChange: (String) -> Unit,
-                        placeholder: String,
-                        leadingIcon: ImageVector,
-                        isPassword: Boolean = false,
-                        passwordVisible: Boolean = false,
-                        onTogglePassword: (() -> Unit)? = null
-                    ) {
-                        Text(
-                            text = label,
-                            fontSize = 13.sp,
-                            color = Color(0xFF5A6978),
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        TextField(
-                            value = value,
-                            onValueChange = onValueChange,
-                            placeholder = {
-                                Text(
-                                    text = placeholder,
-                                    fontSize = 14.sp,
-                                    color = Color(0xFFADB5BD)
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = leadingIcon,
-                                    contentDescription = null,
-                                    tint = Color(0xFF8E98A3),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            },
-                            trailingIcon = if (isPassword && onTogglePassword != null) {
-                                {
-                                    IconButton(onClick = onTogglePassword) {
-                                        Icon(
-                                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                            contentDescription = "Toggle password visibility",
-                                            tint = Color(0xFF8E98A3),
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                    }
-                                }
-                            } else null,
-                            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFF5F7FA),
-                                unfocusedContainerColor = Color(0xFFF5F7FA),
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                focusedTextColor = Color(0xFF2D3748),
-                                unfocusedTextColor = Color(0xFF2D3748)
-                            ),
-                            singleLine = true
-                        )
-                    }
 
                     CustomTextField(
                         label = "Username",
@@ -276,6 +215,69 @@ fun Register() {
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
+}
+
+@Composable
+private fun CustomTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    leadingIcon: ImageVector,
+    isPassword: Boolean = false,
+    passwordVisible: Boolean = false,
+    onTogglePassword: (() -> Unit)? = null
+) {
+    Text(
+        text = label,
+        fontSize = 13.sp,
+        color = Color(0xFF5A6978),
+        fontWeight = FontWeight.Medium,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = {
+            Text(
+                text = placeholder,
+                fontSize = 14.sp,
+                color = Color(0xFFADB5BD)
+            )
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = leadingIcon,
+                contentDescription = null,
+                tint = Color(0xFF8E98A3),
+                modifier = Modifier.size(20.dp)
+            )
+        },
+        trailingIcon = if (isPassword && onTogglePassword != null) {
+            {
+                IconButton(onClick = onTogglePassword) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        contentDescription = "Toggle password visibility",
+                        tint = Color(0xFF8E98A3),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        } else null,
+        visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color(0xFFF5F7FA),
+            unfocusedContainerColor = Color(0xFFF5F7FA),
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedTextColor = Color(0xFF2D3748),
+            unfocusedTextColor = Color(0xFF2D3748)
+        ),
+        singleLine = true
+    )
 }
 
 @Composable
