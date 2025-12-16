@@ -1,4 +1,4 @@
-package com.example.alp_vp.view
+package com.example.alp_vp.view.LoginRegister
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
