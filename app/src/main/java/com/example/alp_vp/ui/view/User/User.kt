@@ -1,14 +1,15 @@
-package com.example.alp_vp.view.Friend
+package com.example.alp_vp.ui.view.User
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-fun Friend() {
+fun User(){
+
 }
 
 @Composable
 @Preview(showBackground = true, showSystemUi = true)
-fun FriendPreview() {
-    Friend()
+fun UserPreview(){
+    User()
 }

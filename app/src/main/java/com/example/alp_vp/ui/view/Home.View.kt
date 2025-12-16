@@ -1,4 +1,4 @@
-package com.example.alp_vp.view
+package com.example.alp_vp.ui.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -10,7 +10,6 @@ import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.DirectionsRun
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Hotel
-import androidx.compose.material.icons.outlined.LocalDrink
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.Waves
@@ -35,8 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.ui.graphics.vector.ImageVector
 
 @Composable
 fun HomeView(
@@ -179,7 +177,7 @@ private fun HeaderCard(
 }
 
 @Composable
-private fun StatPill(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
+private fun StatPill(icon: ImageVector, label: String, value: String) {
     Box(
         modifier = Modifier
             .width(90.dp)
@@ -315,7 +313,7 @@ private fun ProgressCard(
 
 @Composable
 private fun MetricTile(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     iconTint: Color,
     bg: Color,
     title: String,
@@ -457,7 +455,7 @@ private fun InputDataCard(
 
 @Composable
 private fun InputRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     tint: Color,
     title: String,
     value: String
