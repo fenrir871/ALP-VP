@@ -1,4 +1,4 @@
-package com.example.alp_vp.view.Friend
+package com.example.alp_vp.ui.view.Friend
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
