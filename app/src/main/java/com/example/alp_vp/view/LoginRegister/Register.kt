@@ -43,7 +43,6 @@ fun Register() {
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Blue rounded header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -56,7 +55,6 @@ fun Register() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(top = 32.dp)
                 ) {
-                    // Heart Icon
                     Surface(
                         modifier = Modifier.size(64.dp),
                         shape = RoundedCornerShape(16.dp),
