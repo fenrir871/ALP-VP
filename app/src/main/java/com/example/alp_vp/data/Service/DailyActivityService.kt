@@ -1,12 +1,12 @@
-package com.example.alp_vp.Service
+package com.example.alp_vp.data.Service
 
-import com.example.alp_vp.dto.CreateTodayActivityRequest
-import com.example.alp_vp.dto.TodayActivityResponse
-import com.example.alp_vp.dto.UpdateTodayActivityRequest
+import com.example.alp_vp.data.dto.CreateTodayActivityRequest
+import com.example.alp_vp.data.dto.TodayActivityResponse
+import com.example.alp_vp.data.dto.UpdateTodayActivityRequest
 import retrofit2.Response
 import retrofit2.http.*
 
-interface TodayActivityService {
+interface DailyActivityService{
 
     @GET("today-activities")
     suspend fun getAllTodayActivities(): Response<List<TodayActivityResponse>>
