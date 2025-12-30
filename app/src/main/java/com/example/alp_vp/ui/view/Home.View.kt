@@ -22,6 +22,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.LazyColumn
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
 
+
+
+
+
+
+
 @Composable
 fun HomeView(dailyActivityViewModel: DailyActivityViewModel) {
     val state = dailyActivityViewModel.uiState.collectAsState().value
@@ -47,6 +53,11 @@ fun HomeView(dailyActivityViewModel: DailyActivityViewModel) {
             ),
             modifier = Modifier.fillMaxSize()
         ) {
+
+
+
+
+
             item {
                 HeaderCard(
                     username = state.username,
@@ -87,6 +98,15 @@ fun HomeView(dailyActivityViewModel: DailyActivityViewModel) {
                     caloriesMessage = caloriesMessage
                 )
             }
+
+
+
+            item {
+                WeeklySummarySection()
+            }
+
+
+
         }
     }
 }
@@ -542,6 +562,157 @@ private fun ProgressBar(current: Int, max: Int, barColor: Color, modifier: Modif
         )
     }
 }
+
+
+
+
+@Composable
+fun WeeklySummarySection(
+    sleepAvg: Float? = null,
+    sleepScore: Int? = null,
+    waterAvg: Int? = null,
+    waterScore: Int? = null,
+    stepsAvg: Int? = null,
+    stepsScore: Int? = null,
+    caloriesAvg: Int? = null,
+    caloriesScore: Int? = null
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .background(Color.White, RoundedCornerShape(18.dp))
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Weekly Average Progress",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF1E2A3A)
+            )
+            // Removed the Spacer and the "Last 7 days" text here
+        }
+        Spacer(Modifier.height(16.dp))
+        WeeklySummaryCard(
+            icon = Icons.Outlined.Hotel,
+            title = "Sleep",
+            avgLabel = "hours",
+            avg = sleepAvg ?: 0f,
+            score = sleepScore ?: 0,
+            bg = Color(0xFFF8F5FF)
+        )
+        Spacer(Modifier.height(12.dp))
+        WeeklySummaryCard(
+            icon = Icons.Outlined.WaterDrop,
+            title = "Water",
+            avgLabel = "glasses",
+            avg = waterAvg?.toFloat() ?: 0f,
+            score = waterScore ?: 0,
+            bg = Color(0xFFF0F8FF)
+        )
+        Spacer(Modifier.height(12.dp))
+        WeeklySummaryCard(
+            icon = Icons.Outlined.DirectionsRun,
+            title = "Steps",
+            avgLabel = "steps",
+            avg = stepsAvg?.toFloat() ?: 0f,
+            score = stepsScore ?: 0,
+            bg = Color(0xFFFFF5F0)
+        )
+        Spacer(Modifier.height(12.dp))
+        WeeklySummaryCard(
+            icon = Icons.Outlined.FavoriteBorder,
+            title = "Calories",
+            avgLabel = "kcal",
+            avg = caloriesAvg?.toFloat() ?: 0f,
+            score = caloriesScore ?: 0,
+            bg = Color(0xFFFFF0F3)
+        )
+    }
+}
+
+@Composable
+private fun WeeklySummaryCard(
+    icon: ImageVector,
+    title: String,
+    avgLabel: String,
+    avg: Float,
+    score: Int,
+    bg: Color
+) {
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = bg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = null, tint = Color(0xFF9B6BFF), modifier = Modifier.size(24.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(text = title, fontSize = 16.sp, color = Color(0xFF1E2A3A))
+                Spacer(Modifier.weight(1f))
+                Text(text = "Last 7 days", fontSize = 12.sp, color = Color(0xFF7A8899))
+            }
+            Spacer(Modifier.height(12.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(Color.White.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+                        .padding(8.dp)
+                ) {
+                    Text(text = "Weekly Average", fontSize = 13.sp, color = Color(0xFF637083))
+                    Text(
+                        text = "${avg.toInt()} $avgLabel",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1E2A3A)
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(Color.White.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+                        .padding(8.dp)
+                ) {
+                    Text(text = "Score", fontSize = 13.sp, color = Color(0xFF637083))
+                    Text(
+                        text = "${score}/10",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1E2A3A)
+                    )
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .background(Color(0xFFE8EBF0), RoundedCornerShape(3.dp))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth((score / 10f).coerceIn(0f, 1f))
+                        .height(6.dp)
+                        .background(Color(0xFF9B6BFF), RoundedCornerShape(3.dp))
+                )
+            }
+        }
+    }
+}
+
+
+
+
 
 @Composable
 @Preview
