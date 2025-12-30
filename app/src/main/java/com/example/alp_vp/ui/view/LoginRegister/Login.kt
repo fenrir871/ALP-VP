@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -185,9 +184,8 @@ fun LoginScreen(
                                         Toast.makeText(context, "Please enter your password", Toast.LENGTH_SHORT).show()
                                     }
                                     else -> {
-                                        // Check if user exists
-                                        val user = userRepository.getUser()
-                                        if (user != null && user.email == email && user.password == password) {
+                                        // Check if user exists and login
+                                        if (userRepository.login(email, password)) {
                                             Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
                                             onLoginSuccess()
                                         } else {

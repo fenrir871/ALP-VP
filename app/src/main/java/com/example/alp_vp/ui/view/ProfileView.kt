@@ -220,7 +220,7 @@ fun ProfileView(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 24.dp)
+                .padding(bottom = 100.dp)  // Add extra padding for bottom navbar
                 .height(56.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(

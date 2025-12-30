@@ -39,7 +39,12 @@ fun HomeView(dailyActivityViewModel: DailyActivityViewModel) {
     Surface(color = Color(0xFFF3F6FB), modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 12.dp,
+                bottom = 100.dp  // Add extra padding for bottom navbar
+            ),
             modifier = Modifier.fillMaxSize()
         ) {
             item {

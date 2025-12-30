@@ -33,10 +33,17 @@ class UserRepository(context: Context) {
         val isLoggedIn = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
         if (!isLoggedIn) return null
 
+        return getUserData()
+    }
+
+    fun getUserData(): User? {
+        val email = prefs.getString(KEY_EMAIL, "") ?: ""
+        if (email.isEmpty()) return null
+
         return User(
             fullName = prefs.getString(KEY_FULL_NAME, "") ?: "",
             username = prefs.getString(KEY_USERNAME, "") ?: "",
-            email = prefs.getString(KEY_EMAIL, "") ?: "",
+            email = email,
             phone = prefs.getString(KEY_PHONE, "") ?: "",
             password = prefs.getString(KEY_PASSWORD, "") ?: ""
         )
@@ -44,6 +51,18 @@ class UserRepository(context: Context) {
 
     fun isLoggedIn(): Boolean {
         return prefs.getBoolean(KEY_IS_LOGGED_IN, false)
+    }
+
+    fun login(email: String, password: String): Boolean {
+        val user = getUserData()
+        if (user != null && user.email == email && user.password == password) {
+            prefs.edit().apply {
+                putBoolean(KEY_IS_LOGGED_IN, true)
+                apply()
+            }
+            return true
+        }
+        return false
     }
 
     fun logout() {
