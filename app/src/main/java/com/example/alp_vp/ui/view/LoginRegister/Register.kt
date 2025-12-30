@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alp_vp.data.model.User
+import com.example.alp_vp.ui.model.UserModel
 import com.example.alp_vp.data.repository.UserRepository
 
 
@@ -236,7 +236,7 @@ fun Register(
                                     }
                                     else -> {
                                         // Create and save user
-                                        val user = User(
+                                        val user = UserModel(
                                             fullName = fullName,
                                             username = username,
                                             email = email,

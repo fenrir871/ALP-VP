@@ -2,7 +2,7 @@ package com.example.alp_vp.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.alp_vp.data.model.User
+import com.example.alp_vp.ui.model.UserModel
 
 class UserRepository(context: Context) {
     private val prefs: SharedPreferences =
@@ -17,7 +17,7 @@ class UserRepository(context: Context) {
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
     }
 
-    fun saveUser(user: User) {
+    fun saveUser(user: UserModel) {
         prefs.edit().apply {
             putString(KEY_FULL_NAME, user.fullName)
             putString(KEY_USERNAME, user.username)
@@ -29,18 +29,18 @@ class UserRepository(context: Context) {
         }
     }
 
-    fun getUser(): User? {
+    fun getUser(): UserModel? {
         val isLoggedIn = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
         if (!isLoggedIn) return null
 
         return getUserData()
     }
 
-    fun getUserData(): User? {
+    fun getUserData(): UserModel? {
         val email = prefs.getString(KEY_EMAIL, "") ?: ""
         if (email.isEmpty()) return null
 
-        return User(
+        return UserModel(
             fullName = prefs.getString(KEY_FULL_NAME, "") ?: "",
             username = prefs.getString(KEY_USERNAME, "") ?: "",
             email = email,
