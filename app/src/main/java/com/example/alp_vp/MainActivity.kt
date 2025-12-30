@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
 import com.example.alp_vp.data.api.RetrofitClient
 import com.example.alp_vp.data.local.TokenManager
+import com.example.alp_vp.ui.route.AppNavigation
 import com.example.alp_vp.ui.theme.ALPVPTheme
 import com.example.alp_vp.ui.view.Friend.Friend
 import kotlinx.coroutines.launch
@@ -33,7 +34,7 @@ class MainActivity : ComponentActivity() {
 
             setContent {
                 ALPVPTheme {
-                    Friend()
+                    AppNavigation()
                 }
             }
         }
