@@ -1,4 +1,4 @@
-package com.example.alp_vp.model
+package com.example.alp_vp.ui.model
 
 data class DailyActivityModels(
     val id: Int,

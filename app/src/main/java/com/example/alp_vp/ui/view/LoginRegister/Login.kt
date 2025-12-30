@@ -1,6 +1,8 @@
 package com.example.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,14 +18,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alp_vp.data.repository.UserRepository
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(
+    onLoginSuccess: () -> Unit = {},
+    onNavigateToRegister: () -> Unit = {}
+) {
+    val context = LocalContext.current
+    val userRepository = remember { UserRepository(context) }
+
     val blueStart = Color(0xFF2A7DE1)
     val blueEnd = Color(0xFF3BB0FF)
 
@@ -164,7 +175,27 @@ fun LoginScreen() {
                             .fillMaxWidth()
                             .height(56.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(Brush.horizontalGradient(listOf(blueStart, blueEnd))),
+                            .background(Brush.horizontalGradient(listOf(blueStart, blueEnd)))
+                            .clickable {
+                                when {
+                                    email.isBlank() -> {
+                                        Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
+                                    }
+                                    password.isBlank() -> {
+                                        Toast.makeText(context, "Please enter your password", Toast.LENGTH_SHORT).show()
+                                    }
+                                    else -> {
+                                        // Check if user exists
+                                        val user = userRepository.getUser()
+                                        if (user != null && user.email == email && user.password == password) {
+                                            Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
+                                            onLoginSuccess()
+                                        } else {
+                                            Toast.makeText(context, "Invalid email or password", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Text("Sign In", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
@@ -186,7 +217,13 @@ fun LoginScreen() {
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text("Don't have an account? ", color = Color(0xFF6C7A92), fontSize = 13.sp)
-                        Text("Sign Up", color = blueStart, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        Text(
+                            "Sign Up",
+                            color = blueStart,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 13.sp,
+                            modifier = Modifier.clickable { onNavigateToRegister() }
+                        )
                     }
                 }
             }

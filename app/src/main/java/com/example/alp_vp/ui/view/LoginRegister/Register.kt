@@ -1,6 +1,8 @@
 package com.example.alp_vp.ui.view.LoginRegister
 
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -16,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -23,13 +26,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alp_vp.data.model.User
+import com.example.alp_vp.data.repository.UserRepository
 
 
 @Composable
-fun Register() {
+fun Register(
+    onRegisterSuccess: () -> Unit = {},
+    onNavigateToLogin: () -> Unit = {}
+) {
+    val context = LocalContext.current
+    val userRepository = remember { UserRepository(context) }
+
     val blueStart = Color(0xFF2A7DE1)
     val blueEnd = Color(0xFF3BB0FF)
 
+    var fullName by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
@@ -118,6 +130,17 @@ fun Register() {
             ) {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 20.dp)) {
                     CustomTextField(
+                        label = "Full Name",
+                        value = fullName,
+                        onValueChange = { fullName = it },
+                        placeholder = "Enter your full name",
+                        leadingIcon = Icons.Outlined.Person,
+                        blueStart = blueStart
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    CustomTextField(
                         label = "Username",
                         value = username,
                         onValueChange = { username = it },
@@ -183,7 +206,49 @@ fun Register() {
                             .fillMaxWidth()
                             .height(56.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(Brush.horizontalGradient(listOf(blueStart, blueEnd))),
+                            .background(Brush.horizontalGradient(listOf(blueStart, blueEnd)))
+                            .clickable {
+                                // Validation
+                                when {
+                                    fullName.isBlank() -> {
+                                        Toast.makeText(context, "Please enter your full name", Toast.LENGTH_SHORT).show()
+                                    }
+                                    username.isBlank() -> {
+                                        Toast.makeText(context, "Please enter a username", Toast.LENGTH_SHORT).show()
+                                    }
+                                    email.isBlank() -> {
+                                        Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
+                                    }
+                                    !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                                        Toast.makeText(context, "Please enter a valid email", Toast.LENGTH_SHORT).show()
+                                    }
+                                    phone.isBlank() -> {
+                                        Toast.makeText(context, "Please enter your phone number", Toast.LENGTH_SHORT).show()
+                                    }
+                                    password.isBlank() -> {
+                                        Toast.makeText(context, "Please enter a password", Toast.LENGTH_SHORT).show()
+                                    }
+                                    password.length < 6 -> {
+                                        Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+                                    }
+                                    password != confirmPassword -> {
+                                        Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                                    }
+                                    else -> {
+                                        // Create and save user
+                                        val user = User(
+                                            fullName = fullName,
+                                            username = username,
+                                            email = email,
+                                            phone = phone,
+                                            password = password
+                                        )
+                                        userRepository.saveUser(user)
+                                        Toast.makeText(context, "Account created successfully!", Toast.LENGTH_SHORT).show()
+                                        onRegisterSuccess()
+                                    }
+                                }
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Text("Create Account", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
@@ -205,7 +270,13 @@ fun Register() {
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text("Already have an account? ", color = Color(0xFF6C7A92), fontSize = 13.sp)
-                        Text("Sign In", color = blueStart, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        Text(
+                            "Sign In",
+                            color = blueStart,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 13.sp,
+                            modifier = Modifier.clickable { onNavigateToLogin() }
+                        )
                     }
                 }
             }
