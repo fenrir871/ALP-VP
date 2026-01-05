@@ -5,86 +5,230 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Bolt
-import androidx.compose.material.icons.outlined.CalendarToday
-import androidx.compose.material.icons.outlined.DirectionsRun
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.Hotel
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.WaterDrop
-import androidx.compose.material.icons.outlined.Waves
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
+
+
+
+
+
+
 
 @Composable
-fun HomeView(
-    username: String = "bbb",
-    dateLabel: String = "Wednesday, December 3, 2024",
-    streakDays: Int = 5,
-    avgScore: Int = 0,
-    goalsDone: Int = 3,
-    goalsTotal: Int = 4,
-    steps: Int = 10000,
-    calories: Int = 2000,
-    waterGlasses: Int = 8,
-    sleepHours: Float = 7.5f
-) {
-    val scheme = lightColorScheme()
+fun HomeView(dailyActivityViewModel: DailyActivityViewModel) {
+    val state = dailyActivityViewModel.uiState.collectAsState().value
+
+    // Collect scores and messages
+    val sleepScore by dailyActivityViewModel._sleepScore.collectAsState()
+    val sleepMessage by dailyActivityViewModel._sleepMessage.collectAsState()
+    val waterScore by dailyActivityViewModel._waterScore.collectAsState()
+    val waterMessage by dailyActivityViewModel._waterMessage.collectAsState()
+    val stepsScore by dailyActivityViewModel._stepsScore.collectAsState()
+    val stepsMessage by dailyActivityViewModel._stepsMessage.collectAsState()
+    val caloriesScore by dailyActivityViewModel._caloriesScore.collectAsState()
+    val caloriesMessage by dailyActivityViewModel._caloriesMessage.collectAsState()
+
     Surface(color = Color(0xFFF3F6FB), modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 12.dp,
+                bottom = 100.dp  // Add extra padding for bottom navbar
+            ),
             modifier = Modifier.fillMaxSize()
         ) {
+
+
+
+
+
             item {
                 HeaderCard(
-                    username = username,
-                    dateLabel = dateLabel,
-                    streakDays = streakDays,
-                    avgScore = avgScore,
-                    goalsDone = goalsDone,
-                    goalsTotal = goalsTotal
+                    username = state.username,
+                    dateLabel = state.dateLabel,
+                    streakDays = state.streakDays,
+                    avgScore = state.avgScore,
+                    goalsDone = state.goalsDone,
+                    goalsTotal = state.goalsTotal
                 )
             }
             item {
                 ProgressCard(
-                    steps = steps,
-                    calories = calories,
-                    waterGlasses = waterGlasses,
-                    sleepHours = sleepHours
+                    steps = state.steps.toIntOrNull() ?: 0,
+                    calories = state.calories.toIntOrNull() ?: 0,
+                    waterGlasses = state.waterGlasses.toIntOrNull() ?: 0,
+                    sleepHours = state.sleepHours.toFloatOrNull() ?: 0f,
+                    dailyActivityViewModel = dailyActivityViewModel
                 )
             }
             item {
-                InputDataCard(
-                    sleepHours = sleepHours,
-                    waterGlasses = waterGlasses,
-                    steps = steps,
-                    calories = calories
+                InputDataCard (
+                    sleepHours = state.sleepHours,
+                    waterGlasses = state.waterGlasses,
+                    steps = state.steps,
+                    calories = state.calories,
+                    onSleepChange = dailyActivityViewModel::onSleepChange,
+                    onWaterChange = dailyActivityViewModel::onWaterChange,
+                    onStepsChange = dailyActivityViewModel::onStepsChange,
+                    onCaloriesChange = dailyActivityViewModel::onCaloriesChange,
+                    // Pass scores and messages
+                    sleepScore = sleepScore,
+                    sleepMessage = sleepMessage,
+                    waterScore = waterScore,
+                    waterMessage = waterMessage,
+                    stepsScore = stepsScore,
+                    stepsMessage = stepsMessage,
+                    caloriesScore = caloriesScore,
+                    caloriesMessage = caloriesMessage
+                )
+            }
+
+
+
+            item {
+                WeeklySummarySection()
+            }
+
+
+
+        }
+    }
+}
+
+@Composable
+private fun InputDataCard(
+    sleepHours: String,
+    waterGlasses: String,
+    steps: String,
+    calories: String,
+    onSleepChange: (String) -> Unit,
+    onWaterChange: (String) -> Unit,
+    onStepsChange: (String) -> Unit,
+    onCaloriesChange: (String) -> Unit,
+    sleepScore: Float,
+    sleepMessage: String,
+    waterScore: Float,
+    waterMessage: String,
+    stepsScore: Float,
+    stepsMessage: String,
+    caloriesScore: Float,
+    caloriesMessage: String
+) {
+    Card(
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                text = "Input Your Data",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = Color(0xFF1E2A3A)
+            )
+            Spacer(Modifier.height(12.dp))
+
+            InputRowField(
+                icon = Icons.Outlined.Hotel,
+                tint = Color(0xFF9B6BFF),
+                title = "Sleep (hours)",
+                value = sleepHours,
+                onValueChange = onSleepChange,
+                score = sleepScore,
+                message = sleepMessage
+            )
+            Divider(color = Color(0xFFEDEFF2), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+            InputRowField(
+                icon = Icons.Outlined.WaterDrop,
+                tint = Color(0xFF3DA8FF),
+                title = "Water (glasses)",
+                value = waterGlasses,
+                onValueChange = onWaterChange,
+                score = waterScore,
+                message = waterMessage
+            )
+            Divider(color = Color(0xFFEDEFF2), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+            InputRowField(
+                icon = Icons.Outlined.DirectionsRun,
+                tint = Color(0xFFFF7A3D),
+                title = "Steps",
+                value = steps,
+                onValueChange = onStepsChange,
+                score = stepsScore,
+                message = stepsMessage
+            )
+            Divider(color = Color(0xFFEDEFF2), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+            InputRowField(
+                icon = Icons.Outlined.FavoriteBorder,
+                tint = Color(0xFFFF5A7A),
+                title = "Calories",
+                value = calories,
+                onValueChange = onCaloriesChange,
+                score = caloriesScore,
+                message = caloriesMessage
+            )
+        }
+    }
+}
+
+@Composable
+private fun InputRowField(
+    icon: ImageVector,
+    tint: Color,
+    title: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    score: Float,
+    message: String
+) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(tint.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = tint)
+        }
+        Spacer(Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, color = Color(0xFF637083), fontSize = 13.sp)
+            TextField(
+                value = value,
+                onValueChange = onValueChange,
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            // Only show the message, not the score text
+            if (message.isNotEmpty()) {
+                Text(
+                    text = message,
+                    color = if (score >= 15f) Color(0xFF43A047) else Color(0xFFD32F2F),
+                    fontSize = 12.sp
                 )
             }
         }
     }
 }
+
+
 
 @Composable
 private fun HeaderCard(
@@ -228,8 +372,14 @@ private fun ProgressCard(
     steps: Int,
     calories: Int,
     waterGlasses: Int,
-    sleepHours: Float
+    sleepHours: Float,
+    dailyActivityViewModel: DailyActivityViewModel
 ) {
+    val stepsScore by dailyActivityViewModel._stepsScore.collectAsState()
+    val caloriesScore by dailyActivityViewModel._caloriesScore.collectAsState()
+    val waterScore by dailyActivityViewModel._waterScore.collectAsState()
+    val sleepScore by dailyActivityViewModel._sleepScore.collectAsState()
+
     Card(
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -267,6 +417,7 @@ private fun ProgressCard(
                     title = "Steps",
                     value = steps.toString(),
                     suffix = "",
+                    score = (stepsScore / 2).toInt(),
                     max = 10,
                     modifier = Modifier.weight(1f)
                 )
@@ -277,6 +428,7 @@ private fun ProgressCard(
                     title = "Calories",
                     value = calories.toString(),
                     suffix = "",
+                    score = (caloriesScore / 2).toInt(),
                     max = 10,
                     modifier = Modifier.weight(1f)
                 )
@@ -293,6 +445,7 @@ private fun ProgressCard(
                     title = "Water",
                     value = waterGlasses.toString(),
                     suffix = "glasses",
+                    score = (waterScore / 2).toInt(),
                     max = 10,
                     modifier = Modifier.weight(1f)
                 )
@@ -303,6 +456,7 @@ private fun ProgressCard(
                     title = "Sleep",
                     value = sleepHours.toInt().toString(),
                     suffix = "hours",
+                    score = (sleepScore / 2).toInt(),
                     max = 10,
                     modifier = Modifier.weight(1f)
                 )
@@ -319,6 +473,7 @@ private fun MetricTile(
     title: String,
     value: String,
     suffix: String,
+    score: Int,
     max: Int,
     modifier: Modifier = Modifier
 ) {
@@ -365,27 +520,34 @@ private fun MetricTile(
                 }
             }
             Spacer(Modifier.height(12.dp))
-            ProgressBar(
-                current = minOf(value.toIntOrNull() ?: 0, max),
-                max = max,
-                barColor = iconTint
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = "0/$max",
-                color = Color(0xFF9AA6B2),
-                fontSize = 11.sp
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                ProgressBar(
+                    modifier = Modifier.weight(1f),
+                    current = score,
+                    max = max,
+                    barColor = iconTint,
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "$score/$max",
+                    color = Color(0xFF9AA6B2),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun ProgressBar(current: Int, max: Int, barColor: Color) {
+private fun ProgressBar(current: Int, max: Int, barColor: Color, modifier: Modifier = Modifier) {
     val pct = remember(current, max) { if (max <= 0) 0f else current.toFloat() / max.toFloat() }
     val track = Color(0xFFE8EBF0)
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(6.dp)
             .clip(RoundedCornerShape(3.dp))
@@ -401,85 +563,159 @@ private fun ProgressBar(current: Int, max: Int, barColor: Color) {
     }
 }
 
+
+
+
 @Composable
-private fun InputDataCard(
-    sleepHours: Float,
-    waterGlasses: Int,
-    steps: Int,
-    calories: Int
+fun WeeklySummarySection(
+    sleepAvg: Float? = null,
+    sleepScore: Int? = null,
+    waterAvg: Int? = null,
+    waterScore: Int? = null,
+    stepsAvg: Int? = null,
+    stepsScore: Int? = null,
+    caloriesAvg: Int? = null,
+    caloriesScore: Int? = null
 ) {
-    Card(
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        modifier = Modifier.fillMaxWidth()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .background(Color.White, RoundedCornerShape(18.dp))
     ) {
-        Column(Modifier.padding(16.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text(
-                text = "Input Your Data",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                text = "Weekly Average Progress",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF1E2A3A)
             )
-            Spacer(Modifier.height(12.dp))
-
-            InputRow(
-                icon = Icons.Outlined.Hotel,
-                tint = Color(0xFF9B6BFF),
-                title = "Sleep (hours)",
-                value = sleepHours.toString()
-            )
-            Divider(color = Color(0xFFEDEFF2), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
-            InputRow(
-                icon = Icons.Outlined.WaterDrop,
-                tint = Color(0xFF3DA8FF),
-                title = "Water (glasses)",
-                value = waterGlasses.toString()
-            )
-            Divider(color = Color(0xFFEDEFF2), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
-            InputRow(
-                icon = Icons.Outlined.DirectionsRun,
-                tint = Color(0xFFFF7A3D),
-                title = "Steps",
-                value = steps.toString()
-            )
-            Divider(color = Color(0xFFEDEFF2), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
-            InputRow(
-                icon = Icons.Outlined.FavoriteBorder,
-                tint = Color(0xFFFF5A7A),
-                title = "Calories",
-                value = calories.toString()
-            )
+            // Removed the Spacer and the "Last 7 days" text here
         }
+        Spacer(Modifier.height(16.dp))
+        WeeklySummaryCard(
+            icon = Icons.Outlined.Hotel,
+            title = "Sleep",
+            avgLabel = "hours",
+            avg = sleepAvg ?: 0f,
+            score = sleepScore ?: 0,
+            bg = Color(0xFFF8F5FF)
+        )
+        Spacer(Modifier.height(12.dp))
+        WeeklySummaryCard(
+            icon = Icons.Outlined.WaterDrop,
+            title = "Water",
+            avgLabel = "glasses",
+            avg = waterAvg?.toFloat() ?: 0f,
+            score = waterScore ?: 0,
+            bg = Color(0xFFF0F8FF)
+        )
+        Spacer(Modifier.height(12.dp))
+        WeeklySummaryCard(
+            icon = Icons.Outlined.DirectionsRun,
+            title = "Steps",
+            avgLabel = "steps",
+            avg = stepsAvg?.toFloat() ?: 0f,
+            score = stepsScore ?: 0,
+            bg = Color(0xFFFFF5F0)
+        )
+        Spacer(Modifier.height(12.dp))
+        WeeklySummaryCard(
+            icon = Icons.Outlined.FavoriteBorder,
+            title = "Calories",
+            avgLabel = "kcal",
+            avg = caloriesAvg?.toFloat() ?: 0f,
+            score = caloriesScore ?: 0,
+            bg = Color(0xFFFFF0F3)
+        )
     }
 }
 
 @Composable
-private fun InputRow(
+private fun WeeklySummaryCard(
     icon: ImageVector,
-    tint: Color,
     title: String,
-    value: String
+    avgLabel: String,
+    avg: Float,
+    score: Int,
+    bg: Color
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(tint.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = null, tint = tint)
-        }
-        Spacer(Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, color = Color(0xFF637083), fontSize = 13.sp)
-            Text(text = value, color = Color(0xFF1E2A3A), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = bg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = null, tint = Color(0xFF9B6BFF), modifier = Modifier.size(24.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(text = title, fontSize = 16.sp, color = Color(0xFF1E2A3A))
+                Spacer(Modifier.weight(1f))
+                Text(text = "Last 7 days", fontSize = 12.sp, color = Color(0xFF7A8899))
+            }
+            Spacer(Modifier.height(12.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(Color.White.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+                        .padding(8.dp)
+                ) {
+                    Text(text = "Weekly Average", fontSize = 13.sp, color = Color(0xFF637083))
+                    Text(
+                        text = "${avg.toInt()} $avgLabel",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1E2A3A)
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(Color.White.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+                        .padding(8.dp)
+                ) {
+                    Text(text = "Score", fontSize = 13.sp, color = Color(0xFF637083))
+                    Text(
+                        text = "${score}/10",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1E2A3A)
+                    )
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .background(Color(0xFFE8EBF0), RoundedCornerShape(3.dp))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth((score / 10f).coerceIn(0f, 1f))
+                        .height(6.dp)
+                        .background(Color(0xFF9B6BFF), RoundedCornerShape(3.dp))
+                )
+            }
         }
     }
 }
+
+
+
+
 
 @Composable
 @Preview
 fun HomeViewPreview() {
-    HomeView()
+    // Leave empty or provide a mock if needed
 }

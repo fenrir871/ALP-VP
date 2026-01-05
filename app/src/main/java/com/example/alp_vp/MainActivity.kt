@@ -5,8 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -14,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
 import com.example.alp_vp.data.api.RetrofitClient
 import com.example.alp_vp.data.local.TokenManager
+import com.example.alp_vp.ui.route.AppNavigation
 import com.example.alp_vp.ui.theme.ALPVPTheme
 import com.example.alp_vp.ui.view.Friend.Friend
 import kotlinx.coroutines.launch
@@ -35,10 +35,15 @@ class MainActivity : ComponentActivity() {
                 ALPVPTheme {
                     Friend()
                 }
+        enableEdgeToEdge()
+        setContent {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                AppNavigation()
             }
         }
+        }
     }
-}
+
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
