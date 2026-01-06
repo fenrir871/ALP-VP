@@ -33,7 +33,7 @@ fun Friend() {
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
     val friendRepository = remember { FriendRepository(context) }
-    val currentUser = remember { userRepository.getUser() }
+    val currentUser = remember { userRepository.getCurrentUser() }
 
     val blueStart = Color(0xFF2A7DE1)
     val blueEnd = Color(0xFF3BB0FF)

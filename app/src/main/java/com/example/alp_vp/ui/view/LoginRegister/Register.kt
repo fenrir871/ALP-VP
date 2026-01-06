@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alp_vp.ui.model.UserModel
 import com.example.alp_vp.data.repository.UserRepository
-
+import kotlinx.coroutines.launch
 
 @Composable
 fun Register(
@@ -37,6 +37,7 @@ fun Register(
 ) {
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
+    val scope = rememberCoroutineScope()
 
     val blueStart = Color(0xFF2A7DE1)
     val blueEnd = Color(0xFF3BB0FF)
@@ -49,6 +50,7 @@ fun Register(
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFF5F7FA)) {
         Column(
@@ -207,7 +209,7 @@ fun Register(
                             .height(56.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .background(Brush.horizontalGradient(listOf(blueStart, blueEnd)))
-                            .clickable {
+                            .clickable(enabled = !isLoading) {
                                 // Validation
                                 when {
                                     fullName.isBlank() -> {
@@ -235,23 +237,38 @@ fun Register(
                                         Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
                                     }
                                     else -> {
-                                        // Create and save user
-                                        val user = UserModel(
-                                            fullName = fullName,
-                                            username = username,
-                                            email = email,
-                                            phone = phone,
-                                            password = password
-                                        )
-                                        userRepository.saveUser(user)
-                                        Toast.makeText(context, "Account created successfully!", Toast.LENGTH_SHORT).show()
-                                        onRegisterSuccess()
+                                        isLoading = true
+                                        scope.launch {
+                                            val user = UserModel(
+                                                fullName = fullName,
+                                                username = username,
+                                                email = email,
+                                                phone = phone,
+                                                password = password
+                                            )
+                                            val result = userRepository.registerUser(user)
+                                            isLoading = false
+                                            result.onSuccess {
+                                                Toast.makeText(context, "Account created successfully!", Toast.LENGTH_SHORT).show()
+                                                onRegisterSuccess()
+                                            }.onFailure { error ->
+                                                Toast.makeText(context, error.message ?: "Registration failed", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
                                     }
                                 }
                             },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Create Account", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Create Account", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                        }
                     }
 
                     Spacer(Modifier.height(16.dp))

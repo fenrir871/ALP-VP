@@ -1,4 +1,4 @@
-package com.example.ui
+package com.example.alp_vp.ui.view.LoginRegister
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alp_vp.data.repository.UserRepository
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -33,12 +34,14 @@ fun LoginScreen(
 ) {
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
+    val scope = rememberCoroutineScope()
 
     val blueStart = Color(0xFF2A7DE1)
     val blueEnd = Color(0xFF3BB0FF)
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFF5F7FA)) {
         Box(Modifier.fillMaxSize()) {
@@ -175,7 +178,7 @@ fun LoginScreen(
                             .height(56.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .background(Brush.horizontalGradient(listOf(blueStart, blueEnd)))
-                            .clickable {
+                            .clickable(enabled = !isLoading) {
                                 when {
                                     email.isBlank() -> {
                                         Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
@@ -184,19 +187,31 @@ fun LoginScreen(
                                         Toast.makeText(context, "Please enter your password", Toast.LENGTH_SHORT).show()
                                     }
                                     else -> {
-                                        // Check if user exists and login
-                                        if (userRepository.login(email, password)) {
-                                            Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
-                                            onLoginSuccess()
-                                        } else {
-                                            Toast.makeText(context, "Invalid email or password", Toast.LENGTH_SHORT).show()
+                                        isLoading = true
+                                        scope.launch {
+                                            val result = userRepository.loginUser(email, password)
+                                            isLoading = false
+                                            result.onSuccess {
+                                                Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
+                                                onLoginSuccess()
+                                            }.onFailure { error ->
+                                                Toast.makeText(context, error.message ?: "Login failed", Toast.LENGTH_SHORT).show()
+                                            }
                                         }
                                     }
                                 }
                             },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Sign In", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Sign In", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                        }
                     }
 
                     Spacer(Modifier.height(16.dp))
@@ -204,9 +219,9 @@ fun LoginScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Divider(Modifier.weight(1f), color = Color(0xFFE8EDF2))
+                        HorizontalDivider(Modifier.weight(1f), color = Color(0xFFE8EDF2))
                         Text("  or  ", color = Color(0xFF9AA7B8), fontSize = 12.sp)
-                        Divider(Modifier.weight(1f), color = Color(0xFFE8EDF2))
+                        HorizontalDivider(Modifier.weight(1f), color = Color(0xFFE8EDF2))
                     }
 
                     Spacer(Modifier.height(12.dp))
