@@ -235,12 +235,21 @@ private fun InputRowField(
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, color = Color(0xFF637083), fontSize = 13.sp)
             TextField(
-                value = value,
+                value = if (value == "0" || value == "0.0") "" else value,
                 onValueChange = { newValue ->
                     // Only allow digits and decimal point
-                    if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                    if (newValue.isEmpty()) {
+                        onValueChange("0")
+                    } else if (newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
                         onValueChange(newValue)
                     }
+                },
+                placeholder = {
+                    Text(
+                        text = "0",
+                        color = Color(0xFF9AA6B2),
+                        fontSize = 16.sp
+                    )
                 },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
