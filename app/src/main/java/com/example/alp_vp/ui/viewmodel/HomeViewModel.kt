@@ -1,7 +1,5 @@
 package com.example.alp_vp.ui.viewmodel
 
-package com.example.alp_vp.ui.viewmodel
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.alp_vp.data.repository.UserRepository
@@ -31,7 +29,9 @@ class HomeViewModel(
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true)
-                val user = userRepository.getCurrentUser()
+
+                var user = userRepository.getCurrentUser()
+
                 _uiState.value = _uiState.value.copy(
                     username = user?.username ?: "User",
                     isLoading = false
