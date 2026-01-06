@@ -36,9 +36,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.alp_vp.data.container.DailyActivityContainer
 import com.example.alp_vp.data.repository.UserRepository
 import com.example.alp_vp.ui.view.Friend.Friend
-import com.example.alp_vp.ui.view.HomeView
+import com.example.alp_vp.ui.view.Home.HomeView
 import com.example.alp_vp.ui.view.LoginRegister.Register
-import com.example.alp_vp.ui.view.ProfileView
+import com.example.alp_vp.ui.view.Profile.ProfileView
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
 import com.example.ui.LoginScreen
 

@@ -1,4 +1,4 @@
-package com.example.alp_vp.ui.view
+package com.example.alp_vp.ui.view.Profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

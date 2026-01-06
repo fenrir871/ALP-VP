@@ -1,4 +1,4 @@
-package com.example.alp_vp.ui.view
+package com.example.alp_vp.ui.view.Home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,9 +23,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
 import com.example.alp_vp.ui.viewmodel.HomeViewModel
-import kotlin.text.toFloatOrNull
-import kotlin.text.toIntOrNull
-import kotlin.toString
 
 @Composable
 fun HomeView(
