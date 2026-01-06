@@ -25,12 +25,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
 import com.example.alp_vp.ui.viewmodel.HomeViewModel
 import androidx.navigation.NavController
+import com.example.alp_vp.ui.viewmodel.WeeklyViewModel
+import kotlin.toString
 
 @Composable
+
 fun HomeView(
     navController: NavController,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(LocalContext.current)),
     dailyActivityViewModel: DailyActivityViewModel = viewModel(factory = DailyActivityViewModel.Factory(LocalContext.current)),
+    weeklyViewModel: WeeklyViewModel = viewModel(
+        factory = WeeklyViewModel.Factory(LocalContext.current)
+    ),
     dateLabel: String = "Wednesday, December 3, 2024",
     streakDays: Int = 5,
     avgScore: Int = 0,
@@ -38,6 +44,7 @@ fun HomeView(
     goalsTotal: Int = 4
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val weeklyStats by weeklyViewModel.weeklyStats.collectAsState()
 
     val sleepHours by dailyActivityViewModel._sleepHours.collectAsState()
     val waterGlasses by dailyActivityViewModel._waterGlasses.collectAsState()
@@ -53,6 +60,11 @@ fun HomeView(
     val waterMessage by dailyActivityViewModel._waterMessage.collectAsState()
     val stepsMessage by dailyActivityViewModel._stepsMessage.collectAsState()
     val caloriesMessage by dailyActivityViewModel._caloriesMessage.collectAsState()
+
+    // Fetch weekly summary when view loads
+    LaunchedEffect(Unit) {
+        weeklyViewModel.fetchWeeklySummary(userId = 1) // Replace with actual user ID
+    }
 
     Surface(color = Color(0xFFF3F6FB), modifier = Modifier.fillMaxSize()) {
         if (uiState.isLoading) {
@@ -105,13 +117,21 @@ fun HomeView(
                     )
                 }
                 item {
-                    WeeklySummarySection()
+                    WeeklySummarySection(
+                        sleepAvg = weeklyStats.sleepAvg,
+                        sleepScore = weeklyStats.sleepScore,
+                        waterAvg = weeklyStats.waterAvg,
+                        waterScore = weeklyStats.waterScore,
+                        stepsAvg = weeklyStats.stepsAvg,
+                        stepsScore = weeklyStats.stepsScore,
+                        caloriesAvg = weeklyStats.caloriesAvg,
+                        caloriesScore = weeklyStats.caloriesScore
+                    )
                 }
             }
         }
     }
 }
-
 
 
 @Composable
@@ -580,63 +600,58 @@ fun WeeklySummarySection(
     caloriesAvg: Int? = null,
     caloriesScore: Int? = null
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .background(Color.White, RoundedCornerShape(18.dp))
+    Card(
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = "Weekly Average Progress",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF1E2A3A)
             )
-            // Removed the Spacer and the "Last 7 days" text here
+            Spacer(Modifier.height(16.dp))
+            WeeklySummaryCard(
+                icon = Icons.Outlined.Hotel,
+                title = "Sleep",
+                avgLabel = "hours",
+                avg = sleepAvg ?: 0f,
+                score = sleepScore ?: 0,
+                bg = Color(0xFFF8F5FF)
+            )
+            Spacer(Modifier.height(12.dp))
+            WeeklySummaryCard(
+                icon = Icons.Outlined.WaterDrop,
+                title = "Water",
+                avgLabel = "glasses",
+                avg = waterAvg?.toFloat() ?: 0f,
+                score = waterScore ?: 0,
+                bg = Color(0xFFF0F8FF)
+            )
+            Spacer(Modifier.height(12.dp))
+            WeeklySummaryCard(
+                icon = Icons.Outlined.DirectionsRun,
+                title = "Steps",
+                avgLabel = "steps",
+                avg = stepsAvg?.toFloat() ?: 0f,
+                score = stepsScore ?: 0,
+                bg = Color(0xFFFFF5F0)
+            )
+            Spacer(Modifier.height(12.dp))
+            WeeklySummaryCard(
+                icon = Icons.Outlined.FavoriteBorder,
+                title = "Calories",
+                avgLabel = "kcal",
+                avg = caloriesAvg?.toFloat() ?: 0f,
+                score = caloriesScore ?: 0,
+                bg = Color(0xFFFFF0F3)
+            )
         }
-        Spacer(Modifier.height(16.dp))
-        WeeklySummaryCard(
-            icon = Icons.Outlined.Hotel,
-            title = "Sleep",
-            avgLabel = "hours",
-            avg = sleepAvg ?: 0f,
-            score = sleepScore ?: 0,
-            bg = Color(0xFFF8F5FF)
-        )
-        Spacer(Modifier.height(12.dp))
-        WeeklySummaryCard(
-            icon = Icons.Outlined.WaterDrop,
-            title = "Water",
-            avgLabel = "glasses",
-            avg = waterAvg?.toFloat() ?: 0f,
-            score = waterScore ?: 0,
-            bg = Color(0xFFF0F8FF)
-        )
-        Spacer(Modifier.height(12.dp))
-        WeeklySummaryCard(
-            icon = Icons.Outlined.DirectionsRun,
-            title = "Steps",
-            avgLabel = "steps",
-            avg = stepsAvg?.toFloat() ?: 0f,
-            score = stepsScore ?: 0,
-            bg = Color(0xFFFFF5F0)
-        )
-        Spacer(Modifier.height(12.dp))
-        WeeklySummaryCard(
-            icon = Icons.Outlined.FavoriteBorder,
-            title = "Calories",
-            avgLabel = "kcal",
-            avg = caloriesAvg?.toFloat() ?: 0f,
-            score = caloriesScore ?: 0,
-            bg = Color(0xFFFFF0F3)
-        )
     }
 }
-
 @Composable
 private fun WeeklySummaryCard(
     icon: ImageVector,

@@ -1,14 +1,26 @@
 package com.example.alp_vp.data.repository
 
-import com.example.alp_vp.data.service.WeeklyActivityService
+import android.content.Context
+import com.example.alp_vp.data.api.RetrofitInstance
 import com.example.alp_vp.data.dto.ResponseWeeklySummary
+import com.example.alp_vp.data.service.WeeklyActivityAPI
 import retrofit2.Response
 
-class WeeklyActivityRepository(private val service: WeeklyActivityService) {
+class WeeklyActivityRepository(context: Context) {
+    private val api: WeeklyActivityAPI = RetrofitInstance.weeklyApi
 
     suspend fun getWeeklySummaryByUserId(userId: Int): Response<ResponseWeeklySummary> {
-        return service.getWeeklySummaryByUserId(userId)
+        return api.getWeeklySummaryByUserId(userId)
     }
 
-    // Add more methods as needed, e.g., create/update weekly summary, etc.
+    companion object {
+        @Volatile
+        private var INSTANCE: WeeklyActivityRepository? = null
+
+        fun getInstance(context: Context): WeeklyActivityRepository {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: WeeklyActivityRepository(context).also { INSTANCE = it }
+            }
+        }
+    }
 }
