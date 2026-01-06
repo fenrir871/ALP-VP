@@ -56,34 +56,86 @@ class DailyActivityViewModel(
     val _avgScore = MutableStateFlow(0)
 
     // In DailyActivityViewModel.kt
-    fun onSleepChange(input: String) {
-        // Remove leading zeros and handle empty input
-        val cleanInput = input.trimStart('0').ifEmpty { "0" }
-        val parsed = cleanInput.toFloatOrNull() ?: 0f
-        _sleepHours.value = parsed
-        calculateSleepScore(parsed)
-    }
-
     fun onWaterChange(input: String) {
         val cleanInput = input.trimStart('0').ifEmpty { "0" }
         val parsed = cleanInput.toIntOrNull() ?: 0
-        _waterGlasses.value = parsed
-        calculateWaterScore(parsed)
+
+        when {
+            parsed < 0 -> {
+                _waterMessage.value = "Invalid: Water glasses cannot be negative"
+                _waterScore.value = 0f
+            }
+            parsed > 30 -> {
+                _waterMessage.value = "Invalid: That's too much water (max: 30 glasses)"
+                _waterScore.value = 0f
+            }
+            else -> {
+                _waterGlasses.value = parsed
+                calculateWaterScore(parsed)
+            }
+        }
     }
 
     fun onStepsChange(input: String) {
         val cleanInput = input.trimStart('0').ifEmpty { "0" }
         val parsed = cleanInput.toIntOrNull() ?: 0
-        _steps.value = parsed
-        calculateStepsScore(parsed.toFloat())
+
+        when {
+            parsed < 0 -> {
+                _stepsMessage.value = "Invalid: Steps cannot be negative"
+                _stepsScore.value = 0f
+            }
+            parsed > 50000 -> {
+                _stepsMessage.value = "Invalid: That's too many steps (max: 50,000)"
+                _stepsScore.value = 0f
+            }
+            else -> {
+                _steps.value = parsed
+                calculateStepsScore(parsed.toFloat())
+            }
+        }
     }
 
     fun onCaloriesChange(input: String) {
         val cleanInput = input.trimStart('0').ifEmpty { "0" }
         val parsed = cleanInput.toIntOrNull() ?: 0
-        _calories.value = parsed
-        calculateCaloriesScore(parsed.toFloat())
+
+        when {
+            parsed < 0 -> {
+                _caloriesMessage.value = "Invalid: Calories cannot be negative"
+                _caloriesScore.value = 0f
+            }
+            parsed > 10000 -> {
+                _caloriesMessage.value = "Invalid: That's too many calories (max: 10,000)"
+                _caloriesScore.value = 0f
+            }
+            else -> {
+                _calories.value = parsed
+                calculateCaloriesScore(parsed.toFloat())
+            }
+        }
     }
+
+    fun onSleepChange(input: String) {
+        val cleanInput = input.trimStart('0').ifEmpty { "0" }
+        val parsed = cleanInput.toFloatOrNull() ?: 0f
+
+        when {
+            parsed < 0 -> {
+                _sleepMessage.value = "Invalid: Sleep hours cannot be negative"
+                _sleepScore.value = 0f
+            }
+            parsed > 24 -> {
+                _sleepMessage.value = "Invalid: Sleep cannot exceed 24 hours"
+                _sleepScore.value = 0f
+            }
+            else -> {
+                _sleepHours.value = parsed
+                calculateSleepScore(parsed)
+            }
+        }
+    }
+
     fun calculateSleepScore(hours: Float) {
         val score: Float
         val message: String
