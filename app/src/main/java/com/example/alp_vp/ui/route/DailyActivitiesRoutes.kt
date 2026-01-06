@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -22,6 +23,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.alp_vp.data.container.DailyActivityContainer
+import com.example.alp_vp.data.repository.UserRepository
 import com.example.alp_vp.ui.view.Home.HomeView
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
 
@@ -57,12 +59,14 @@ fun BottomNavBar(
 
 @Composable
 fun DailyActivitiesRoutes() {
+    val context = LocalContext.current
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // Initialize the container
+    // Initialize the container and repository
     val container = DailyActivityContainer()
+    val userRepository = UserRepository(context)
 
     // Pass the repository to the ViewModel
     val dailyActivityViewModel: DailyActivityViewModel = viewModel(
@@ -70,7 +74,7 @@ fun DailyActivitiesRoutes() {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 if (modelClass.isAssignableFrom(DailyActivityViewModel::class.java)) {
                     @Suppress("UNCHECKED_CAST")
-                    return DailyActivityViewModel(container.dailyActivityRepository) as T
+                    return DailyActivityViewModel(container.dailyActivityRepository, userRepository) as T
                 }
                 throw IllegalArgumentException("Unknown ViewModel class")
             }

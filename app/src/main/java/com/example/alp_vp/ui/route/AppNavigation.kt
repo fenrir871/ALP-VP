@@ -163,7 +163,7 @@ fun AppNavigation() {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 if (modelClass.isAssignableFrom(DailyActivityViewModel::class.java)) {
                     @Suppress("UNCHECKED_CAST")
-                    return DailyActivityViewModel(container.dailyActivityRepository) as T
+                    return DailyActivityViewModel(container.dailyActivityRepository, userRepository) as T
                 }
                 throw IllegalArgumentException("Unknown ViewModel class")
             }

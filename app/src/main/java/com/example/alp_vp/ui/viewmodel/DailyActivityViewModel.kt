@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.alp_vp.data.repository.DailyActivityRepository
+import com.example.alp_vp.data.repository.UserRepository
 import com.example.alp_vp.data.container.DailyActivityContainer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +27,8 @@ data class UiState(
 
 
 class DailyActivityViewModel(
-    private val repository: DailyActivityRepository
+    private val repository: DailyActivityRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     // UI State
     private val _uiState = MutableStateFlow(UiState())
@@ -58,24 +60,28 @@ class DailyActivityViewModel(
         _sleepHours.value = hours
         _uiState.value = _uiState.value.copy(sleepHours = value)
         calculateSleepScore(hours)
+        updateHighestScoreIfNeeded()
     }
     fun onWaterChange(value: String) {
         val glasses = value.toIntOrNull() ?: 0
         _waterGlasses.value = glasses
         _uiState.value = _uiState.value.copy(waterGlasses = value)
         calculateWaterScore(glasses)
+        updateHighestScoreIfNeeded()
     }
     fun onStepsChange(value: String) {
         val steps = value.toIntOrNull() ?: 0
         _steps.value = steps
         _uiState.value = _uiState.value.copy(steps = value)
         calculateStepsScore(steps.toFloat())
+        updateHighestScoreIfNeeded()
     }
     fun onCaloriesChange(value: String) {
         val calories = value.toIntOrNull() ?: 0
         _calories.value = calories
         _uiState.value = _uiState.value.copy(calories = value)
         calculateCaloriesScore(calories.toFloat())
+        updateHighestScoreIfNeeded()
     }
     fun calculateSleepScore(hours: Float) {
         val score: Float
@@ -147,7 +153,14 @@ class DailyActivityViewModel(
     }
 
     fun calculateTotalScore(): Float {
-        return _sleepScore.value + _waterScore.value + _stepsScore.value + _caloriesScore.value
+        // Each category is 0-20, but we need 0-25 for total of 100
+        // So multiply by 2.5 (20 * 2.5 = 50, but we want 25, so 10 * 2.5 = 25)
+        // Since display shows 0-10 (which is score/2), actual conversion is score * 1.25
+        val sleepPoints = _sleepScore.value * 1.25f  // 20 * 1.25 = 25
+        val waterPoints = _waterScore.value * 1.25f  // 20 * 1.25 = 25
+        val stepsPoints = _stepsScore.value * 1.25f  // 20 * 1.25 = 25
+        val caloriesPoints = _caloriesScore.value * 1.25f  // 20 * 1.25 = 25
+        return sleepPoints + waterPoints + stepsPoints + caloriesPoints  // Max: 100
     }
 
     fun loadTodayData() {
@@ -172,12 +185,18 @@ class DailyActivityViewModel(
         _avgScore.value = calculateTotalScore().toInt()
     }
 
+    private fun updateHighestScoreIfNeeded() {
+        val totalScore = calculateTotalScore().toInt()
+        userRepository.updateHighestScore(totalScore)
+    }
+
     companion object {
         fun Factory(context: Context): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val container = DailyActivityContainer()
-                return DailyActivityViewModel(container.dailyActivityRepository) as T
+                val userRepository = UserRepository(context)
+                return DailyActivityViewModel(container.dailyActivityRepository, userRepository) as T
             }
         }
     }
