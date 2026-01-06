@@ -56,7 +56,7 @@ fun HomeView(
 
     Surface(color = Color(0xFFF3F6FB), modifier = Modifier.fillMaxSize()) {
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
