@@ -1,6 +1,7 @@
 package com.example.alp_vp.ui.view.LoginRegister
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,19 +21,45 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.alp_vp.data.local.TokenManager
+import com.example.alp_vp.ui.viewmodel.AuthViewModel
 
 
 @Composable
-fun Register() {
-    var username by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+fun Register(
+    tokenManager: TokenManager,
+    onRegisterSuccess: () -> Unit,
+    onNavigateToLogin: () -> Unit
+) {
+    val viewModel: AuthViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                return AuthViewModel(tokenManager) as T
+            }
+        }
+    )
+
+    // Add these state observations
+    val name by viewModel.registerName.collectAsState()
+    val username by viewModel.registerUsername.collectAsState()
+    val email by viewModel.registerEmail.collectAsState()
+    val phone by viewModel.registerPhone.collectAsState()
+    val password by viewModel.registerPassword.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val registerSuccess by viewModel.registerSuccess.collectAsState()
+
+    // Navigate on success
+    LaunchedEffect(registerSuccess) {
+        if (registerSuccess) {
+            onRegisterSuccess()
+        }
+    }
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-    // Test Merge Buat Bebe
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -103,13 +130,24 @@ fun Register() {
                 Column(
                     modifier = Modifier.padding(20.dp)
                 ) {
+                    CustomTextField(
+                        label = "Full Name",
+                        value = name,
+                        onValueChange = { viewModel.updateRegisterName(it) },
+                        placeholder = "Enter your full name",
+                        leadingIcon = Icons.Default.Person,
+                        enabled = !isLoading
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     CustomTextField(
                         label = "Username",
                         value = username,
-                        onValueChange = { username = it },
+                        onValueChange = { viewModel.updateRegisterUsername(it) },
                         placeholder = "Enter your username",
-                        leadingIcon = Icons.Default.AlternateEmail
+                        leadingIcon = Icons.Default.AlternateEmail,
+                        enabled = !isLoading
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -117,9 +155,10 @@ fun Register() {
                     CustomTextField(
                         label = "Email",
                         value = email,
-                        onValueChange = { email = it },
+                        onValueChange = { viewModel.updateRegisterEmail(it) },
                         placeholder = "Enter your email",
-                        leadingIcon = Icons.Default.Email
+                        leadingIcon = Icons.Default.Email,
+                        enabled = !isLoading
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -127,9 +166,10 @@ fun Register() {
                     CustomTextField(
                         label = "Phone",
                         value = phone,
-                        onValueChange = { phone = it },
+                        onValueChange = { viewModel.updateRegisterPhone(it) },
                         placeholder = "Enter your phone number",
-                        leadingIcon = Icons.Default.Phone
+                        leadingIcon = Icons.Default.Phone,
+                        enabled = !isLoading
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -137,12 +177,13 @@ fun Register() {
                     CustomTextField(
                         label = "Password",
                         value = password,
-                        onValueChange = { password = it },
+                        onValueChange = { viewModel.updateRegisterPassword(it) },
                         placeholder = "Create a password",
                         leadingIcon = Icons.Default.Lock,
                         isPassword = true,
                         passwordVisible = passwordVisible,
-                        onTogglePassword = { passwordVisible = !passwordVisible }
+                        onTogglePassword = { passwordVisible = !passwordVisible },
+                        enabled = !isLoading
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -161,7 +202,9 @@ fun Register() {
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = { /* Handle registration */ },
+                        onClick = {
+                            viewModel.register(confirmPassword)
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp),
@@ -169,16 +212,38 @@ fun Register() {
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF2196F3)
                         ),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 4.dp
-                        )
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                        enabled = !isLoading
                     ) {
-                        Text(
-                            text = "Create Account",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Text(
+                                text = "Create Account",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    errorMessage?.let {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE))
+                        ) {
+                            Text(
+                                text = it,
+                                modifier = Modifier.padding(12.dp),
+                                color = Color(0xFFC62828),
+                                fontSize = 13.sp
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -205,9 +270,9 @@ fun Register() {
                             text = "Sign In",
                             fontSize = 13.sp,
                             color = Color(0xFF2196F3),
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable { onNavigateToLogin() }
                         )
-
                     }
                 }
             }
@@ -226,7 +291,8 @@ private fun CustomTextField(
     leadingIcon: ImageVector,
     isPassword: Boolean = false,
     passwordVisible: Boolean = false,
-    onTogglePassword: (() -> Unit)? = null
+    onTogglePassword: (() -> Unit)? = null,
+    enabled: Boolean = true,
 ) {
     Text(
         text = label,
@@ -280,8 +346,8 @@ private fun CustomTextField(
     )
 }
 
-@Composable
-@Preview
-private fun RegisterView() {
-    Register()
-}
+//@Composable
+//@Preview
+//private fun RegisterView() {
+//    Register()
+//}
