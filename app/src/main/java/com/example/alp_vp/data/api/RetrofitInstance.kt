@@ -2,6 +2,7 @@
 package com.example.alp_vp.data.api
 
 import com.example.alp_vp.data.service.UserAPI
+import com.example.alp_vp.data.service.WeeklyActivityAPI
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -31,5 +32,8 @@ object RetrofitInstance {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
+
     val userApi: UserAPI = retrofit.create(UserAPI::class.java)
+    val weeklyApi: WeeklyActivityAPI = retrofit.create(WeeklyActivityAPI::class.java)
+
 }
