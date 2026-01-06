@@ -20,96 +20,99 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
-
-
-
-
-
-
+import com.example.alp_vp.ui.viewmodel.HomeViewModel
+import kotlin.text.toFloatOrNull
+import kotlin.text.toIntOrNull
+import kotlin.toString
 
 @Composable
-fun HomeView(dailyActivityViewModel: DailyActivityViewModel) {
-    val state = dailyActivityViewModel.uiState.collectAsState().value
+fun HomeView(
+    viewModel: HomeViewModel = viewModel(),
+    dailyActivityViewModel: DailyActivityViewModel = viewModel(),
+    dateLabel: String = "Wednesday, December 3, 2024",
+    streakDays: Int = 5,
+    avgScore: Int = 0,
+    goalsDone: Int = 3,
+    goalsTotal: Int = 4
+) {
+    val uiState by viewModel.uiState.collectAsState()
 
-    // Collect scores and messages
+    val sleepHours by dailyActivityViewModel._sleepHours.collectAsState()
+    val waterGlasses by dailyActivityViewModel._waterGlasses.collectAsState()
+    val steps by dailyActivityViewModel._steps.collectAsState()
+    val calories by dailyActivityViewModel._calories.collectAsState()
+
     val sleepScore by dailyActivityViewModel._sleepScore.collectAsState()
-    val sleepMessage by dailyActivityViewModel._sleepMessage.collectAsState()
     val waterScore by dailyActivityViewModel._waterScore.collectAsState()
-    val waterMessage by dailyActivityViewModel._waterMessage.collectAsState()
     val stepsScore by dailyActivityViewModel._stepsScore.collectAsState()
-    val stepsMessage by dailyActivityViewModel._stepsMessage.collectAsState()
     val caloriesScore by dailyActivityViewModel._caloriesScore.collectAsState()
+
+    val sleepMessage by dailyActivityViewModel._sleepMessage.collectAsState()
+    val waterMessage by dailyActivityViewModel._waterMessage.collectAsState()
+    val stepsMessage by dailyActivityViewModel._stepsMessage.collectAsState()
     val caloriesMessage by dailyActivityViewModel._caloriesMessage.collectAsState()
 
     Surface(color = Color(0xFFF3F6FB), modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 12.dp,
-                bottom = 100.dp  // Add extra padding for bottom navbar
-            ),
-            modifier = Modifier.fillMaxSize()
-        ) {
-
-
-
-
-
-            item {
-                HeaderCard(
-                    username = state.username,
-                    dateLabel = state.dateLabel,
-                    streakDays = state.streakDays,
-                    avgScore = state.avgScore,
-                    goalsDone = state.goalsDone,
-                    goalsTotal = state.goalsTotal
-                )
+        if (uiState.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
-            item {
-                ProgressCard(
-                    steps = state.steps.toIntOrNull() ?: 0,
-                    calories = state.calories.toIntOrNull() ?: 0,
-                    waterGlasses = state.waterGlasses.toIntOrNull() ?: 0,
-                    sleepHours = state.sleepHours.toFloatOrNull() ?: 0f,
-                    dailyActivityViewModel = dailyActivityViewModel
-                )
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                item {
+                    HeaderCard(
+                        username = uiState.username,
+                        dateLabel = dateLabel,
+                        streakDays = streakDays,
+                        avgScore = avgScore,
+                        goalsDone = goalsDone,
+                        goalsTotal = goalsTotal
+                    )
+                }
+                item {
+                    ProgressCard(
+                        steps = steps,
+                        calories = calories,
+                        waterGlasses = waterGlasses,
+                        sleepHours = sleepHours,
+                        dailyActivityViewModel = dailyActivityViewModel
+                    )
+                }
+                item {
+                    InputDataCard(
+                        sleepHours = sleepHours.toString(),
+                        waterGlasses = waterGlasses.toString(),
+                        steps = steps.toString(),
+                        calories = calories.toString(),
+                        onSleepChange = { dailyActivityViewModel.onSleepChange(it) },
+                        onWaterChange = { dailyActivityViewModel.onWaterChange(it) },
+                        onStepsChange = { dailyActivityViewModel.onStepsChange(it) },
+                        onCaloriesChange = { dailyActivityViewModel.onCaloriesChange(it) },
+                        sleepScore = sleepScore,
+                        sleepMessage = sleepMessage,
+                        waterScore = waterScore,
+                        waterMessage = waterMessage,
+                        stepsScore = stepsScore,
+                        stepsMessage = stepsMessage,
+                        caloriesScore = caloriesScore,
+                        caloriesMessage = caloriesMessage
+                    )
+                }
+                item {
+                    WeeklySummarySection()
+                }
             }
-            item {
-                InputDataCard (
-                    sleepHours = state.sleepHours,
-                    waterGlasses = state.waterGlasses,
-                    steps = state.steps,
-                    calories = state.calories,
-                    onSleepChange = dailyActivityViewModel::onSleepChange,
-                    onWaterChange = dailyActivityViewModel::onWaterChange,
-                    onStepsChange = dailyActivityViewModel::onStepsChange,
-                    onCaloriesChange = dailyActivityViewModel::onCaloriesChange,
-                    // Pass scores and messages
-                    sleepScore = sleepScore,
-                    sleepMessage = sleepMessage,
-                    waterScore = waterScore,
-                    waterMessage = waterMessage,
-                    stepsScore = stepsScore,
-                    stepsMessage = stepsMessage,
-                    caloriesScore = caloriesScore,
-                    caloriesMessage = caloriesMessage
-                )
-            }
-
-
-
-            item {
-                WeeklySummarySection()
-            }
-
-
-
         }
     }
 }
+
+
 
 @Composable
 private fun InputDataCard(
