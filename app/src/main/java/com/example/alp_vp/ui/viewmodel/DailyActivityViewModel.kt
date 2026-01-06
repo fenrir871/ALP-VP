@@ -55,33 +55,34 @@ class DailyActivityViewModel(
     val _calories = MutableStateFlow(0)
     val _avgScore = MutableStateFlow(0)
 
-    fun onSleepChange(value: String) {
-        val hours = value.toFloatOrNull() ?: 0f
-        _sleepHours.value = hours
-        _uiState.value = _uiState.value.copy(sleepHours = value)
-        calculateSleepScore(hours)
-        updateHighestScoreIfNeeded()
+    // In DailyActivityViewModel.kt
+    fun onSleepChange(input: String) {
+        // Remove leading zeros and handle empty input
+        val cleanInput = input.trimStart('0').ifEmpty { "0" }
+        val parsed = cleanInput.toFloatOrNull() ?: 0f
+        _sleepHours.value = parsed
+        calculateSleepScore(parsed)
     }
-    fun onWaterChange(value: String) {
-        val glasses = value.toIntOrNull() ?: 0
-        _waterGlasses.value = glasses
-        _uiState.value = _uiState.value.copy(waterGlasses = value)
-        calculateWaterScore(glasses)
-        updateHighestScoreIfNeeded()
+
+    fun onWaterChange(input: String) {
+        val cleanInput = input.trimStart('0').ifEmpty { "0" }
+        val parsed = cleanInput.toIntOrNull() ?: 0
+        _waterGlasses.value = parsed
+        calculateWaterScore(parsed)
     }
-    fun onStepsChange(value: String) {
-        val steps = value.toIntOrNull() ?: 0
-        _steps.value = steps
-        _uiState.value = _uiState.value.copy(steps = value)
-        calculateStepsScore(steps.toFloat())
-        updateHighestScoreIfNeeded()
+
+    fun onStepsChange(input: String) {
+        val cleanInput = input.trimStart('0').ifEmpty { "0" }
+        val parsed = cleanInput.toIntOrNull() ?: 0
+        _steps.value = parsed
+        calculateStepsScore(parsed.toFloat())
     }
-    fun onCaloriesChange(value: String) {
-        val calories = value.toIntOrNull() ?: 0
-        _calories.value = calories
-        _uiState.value = _uiState.value.copy(calories = value)
-        calculateCaloriesScore(calories.toFloat())
-        updateHighestScoreIfNeeded()
+
+    fun onCaloriesChange(input: String) {
+        val cleanInput = input.trimStart('0').ifEmpty { "0" }
+        val parsed = cleanInput.toIntOrNull() ?: 0
+        _calories.value = parsed
+        calculateCaloriesScore(parsed.toFloat())
     }
     fun calculateSleepScore(hours: Float) {
         val score: Float

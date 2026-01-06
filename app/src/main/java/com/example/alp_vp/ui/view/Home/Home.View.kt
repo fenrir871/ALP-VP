@@ -69,9 +69,17 @@ fun HomeView(
         } else {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                modifier = Modifier.fillMaxSize().navigationBarsPadding().statusBarsPadding()
-            ) {
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 12.dp,
+                    bottom = 120.dp
+                ),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding()
+                    .statusBarsPadding()
+            ){
                 item {
                     HeaderCard(
                         username = uiState.username,
@@ -228,11 +236,22 @@ private fun InputRowField(
             Text(text = title, color = Color(0xFF637083), fontSize = 13.sp)
             TextField(
                 value = value,
-                onValueChange = onValueChange,
+                onValueChange = { newValue ->
+                    // Only allow digits and decimal point
+                    if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                        onValueChange(newValue)
+                    }
+                },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
             )
-            // Only show the message, not the score text
             if (message.isNotEmpty()) {
                 Text(
                     text = message,
@@ -243,6 +262,7 @@ private fun InputRowField(
         }
     }
 }
+
 
 
 
