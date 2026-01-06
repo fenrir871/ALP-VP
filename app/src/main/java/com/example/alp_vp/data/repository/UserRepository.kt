@@ -23,6 +23,7 @@ class UserRepository(context: Context) {
         private const val KEY_PHONE = "phone"
         private const val KEY_PASSWORD = "password"
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
+        private const val KEY_HIGHEST_SCORE = "highest_score"
     }
 
     // Validate and register user
@@ -136,6 +137,21 @@ class UserRepository(context: Context) {
     }
 
     fun isLoggedIn(): Boolean = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
+
+    fun updateUser(user: UserModel) {
+        saveUserLocally(user)
+    }
+
+    fun getHighestScore(): Int {
+        return prefs.getInt(KEY_HIGHEST_SCORE, 0)
+    }
+
+    fun updateHighestScore(newScore: Int) {
+        val currentHighest = getHighestScore()
+        if (newScore > currentHighest) {
+            prefs.edit().putInt(KEY_HIGHEST_SCORE, newScore).apply()
+        }
+    }
 
     fun logout() {
         prefs.edit().clear().apply()
