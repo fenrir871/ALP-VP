@@ -56,14 +56,14 @@ fun HomeView(
 
     Surface(color = Color(0xFFF3F6FB), modifier = Modifier.fillMaxSize()) {
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize().navigationBarsPadding().statusBarsPadding()
             ) {
                 item {
                     HeaderCard(
