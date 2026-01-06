@@ -5,6 +5,10 @@ data class UserModel(
     val username: String = "",
     val email: String = "",
     val phone: String = "",
-    val password: String = ""
+    val password: String = "",
+    val id: Int? = null,
+    val highestScore: Int? = null,
+    val friendsCount: Int? = null,
+    val token: String? = null
 )
 

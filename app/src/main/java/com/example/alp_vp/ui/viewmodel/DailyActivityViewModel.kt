@@ -1,8 +1,11 @@
 package com.example.alp_vp.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.alp_vp.data.repository.DailyActivityRepository
+import com.example.alp_vp.data.container.DailyActivityContainer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -151,7 +154,7 @@ class DailyActivityViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val activities = repository.getAllTodayActivities()
+                val activities = repository.getAllDailyActivities()
                 calculateAllScores()
             } catch (e: Exception) {
                 _error.value = e.message
@@ -167,5 +170,15 @@ class DailyActivityViewModel(
         calculateStepsScore(_steps.value.toFloat())
         calculateCaloriesScore(_calories.value.toFloat())
         _avgScore.value = calculateTotalScore().toInt()
+    }
+
+    companion object {
+        fun Factory(context: Context): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val container = DailyActivityContainer()
+                return DailyActivityViewModel(container.dailyActivityRepository) as T
+            }
+        }
     }
 }

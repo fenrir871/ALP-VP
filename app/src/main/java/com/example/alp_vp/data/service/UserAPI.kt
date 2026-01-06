@@ -5,14 +5,14 @@ import retrofit2.Response
 import retrofit2.http.*
 
 data class LoginRequest(val email: String, val password: String)
-data class LoginResponse(val success: Boolean, val user: UserModel?, val message: String)
-data class RegisterResponse(val success: Boolean, val message: String, val userId: Int?)
+data class LoginResponse(val success: Boolean, val data: UserModel?, val message: String? = null)
+data class RegisterResponse(val success: Boolean, val data: UserModel?, val message: String? = null)
 
 interface UserAPI {
-    @POST("api/users/register")
+    @POST("api/register")
     suspend fun register(@Body user: UserModel): Response<RegisterResponse>
 
-    @POST("api/users/login")
+    @POST("api/login")
     suspend fun login(@Body credentials: LoginRequest): Response<LoginResponse>
 
     @GET("api/users/{id}")

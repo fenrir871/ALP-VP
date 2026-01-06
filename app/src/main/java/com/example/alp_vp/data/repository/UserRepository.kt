@@ -40,8 +40,10 @@ class UserRepository(context: Context) {
             val response = userApi.register(user)
             if (response.isSuccessful) {
                 val body = response.body()
-                if (body?.success == true) {
-                    Result.success(body.message ?: "Registration successful.")
+                if (body?.success == true && body.data != null) {
+                    // Save the registered user data locally
+                    saveUserLocally(body.data)
+                    Result.success("Registration successful.")
                 } else {
                     Result.failure(Exception(body?.message ?: "Registration failed."))
                 }
@@ -64,9 +66,9 @@ class UserRepository(context: Context) {
             val response = userApi.login(LoginRequest(email, password))
             if (response.isSuccessful) {
                 val body = response.body()
-                if (body?.success == true && body.user != null) {
-                    saveUserLocally(body.user)
-                    Result.success(body.user)
+                if (body?.success == true && body.data != null) {
+                    saveUserLocally(body.data)
+                    Result.success(body.data)
                 } else {
                     Result.failure(Exception(body?.message ?: "Invalid credentials."))
                 }
@@ -136,10 +138,7 @@ class UserRepository(context: Context) {
     fun isLoggedIn(): Boolean = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
 
     fun logout() {
-        prefs.edit().apply {
-            putBoolean(KEY_IS_LOGGED_IN, false)
-            apply()
-        }
+        prefs.edit().clear().apply()
     }
 
     fun clearAll() {

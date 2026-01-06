@@ -210,13 +210,19 @@ fun Register(
                             .clip(RoundedCornerShape(16.dp))
                             .background(Brush.horizontalGradient(listOf(blueStart, blueEnd)))
                             .clickable(enabled = !isLoading) {
-                                // Validation
+                                // Validation matching backend requirements
                                 when {
                                     fullName.isBlank() -> {
                                         Toast.makeText(context, "Please enter your full name", Toast.LENGTH_SHORT).show()
                                     }
                                     username.isBlank() -> {
                                         Toast.makeText(context, "Please enter a username", Toast.LENGTH_SHORT).show()
+                                    }
+                                    username.length < 3 -> {
+                                        Toast.makeText(context, "Username must be at least 3 characters", Toast.LENGTH_SHORT).show()
+                                    }
+                                    username.length > 50 -> {
+                                        Toast.makeText(context, "Username must not exceed 50 characters", Toast.LENGTH_SHORT).show()
                                     }
                                     email.isBlank() -> {
                                         Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
@@ -227,11 +233,17 @@ fun Register(
                                     phone.isBlank() -> {
                                         Toast.makeText(context, "Please enter your phone number", Toast.LENGTH_SHORT).show()
                                     }
+                                    phone.length < 10 -> {
+                                        Toast.makeText(context, "Phone number must be at least 10 digits", Toast.LENGTH_SHORT).show()
+                                    }
+                                    phone.length > 20 -> {
+                                        Toast.makeText(context, "Phone number must not exceed 20 characters", Toast.LENGTH_SHORT).show()
+                                    }
                                     password.isBlank() -> {
                                         Toast.makeText(context, "Please enter a password", Toast.LENGTH_SHORT).show()
                                     }
-                                    password.length < 6 -> {
-                                        Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+                                    password.length < 8 -> {
+                                        Toast.makeText(context, "Password must be at least 8 characters", Toast.LENGTH_SHORT).show()
                                     }
                                     password != confirmPassword -> {
                                         Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()

@@ -9,8 +9,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
-    private const val BASE_URL = "http://10.0.2.2:3000/" // For Android Emulator
-    // Use "http://YOUR_IP_ADDRESS:3000/" for physical device
+    // FOR EMULATOR: Use 10.0.2.2 (this is the alias to your computer's localhost)
+    // FOR PHYSICAL DEVICE: Use your computer's WiFi IP address (10.0.163.28)
+    // Make sure your phone and computer are on the same WiFi network
+    private const val BASE_URL = "http://10.73.208.129:3000/" // For physical device - MUST include port :3000
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

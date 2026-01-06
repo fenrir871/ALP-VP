@@ -1,7 +1,9 @@
 // kotlin
 package com.example.alp_vp.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.alp_vp.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +18,7 @@ data class HomeUiState(
 )
 
 class HomeViewModel(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository? = null // Add default null or provide default instance
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -30,7 +32,7 @@ class HomeViewModel(
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true)
-                val user = userRepository.getCurrentUser()
+                val user = userRepository?.getCurrentUser()
                 _uiState.value = _uiState.value.copy(
                     username = user?.username ?: "User",
                     isLoading = false,
@@ -41,6 +43,15 @@ class HomeViewModel(
                     error = e.message ?: "Unknown error",
                     isLoading = false
                 )
+            }
+        }
+    }
+
+    companion object {
+        fun Factory(context: Context): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return HomeViewModel(UserRepository(context)) as T
             }
         }
     }

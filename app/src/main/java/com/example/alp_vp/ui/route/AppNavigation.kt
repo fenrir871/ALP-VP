@@ -40,7 +40,7 @@ import com.example.alp_vp.ui.view.Home.HomeView
 import com.example.alp_vp.ui.view.LoginRegister.Register
 import com.example.alp_vp.ui.view.Profile.ProfileView
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
-import com.example.ui.LoginScreen
+import com.example.alp_vp.ui.view.LoginRegister.LoginScreen
 
 enum class AppScreens(
     val title: String,
@@ -217,7 +217,10 @@ fun AppNavigation() {
             }
 
             composable(AppScreens.HOME.title) {
-                HomeView(dailyActivityViewModel = dailyActivityViewModel)
+                HomeView(
+                    navController = navController,
+                    dailyActivityViewModel = dailyActivityViewModel
+                )
             }
 
             composable(AppScreens.FRIENDS.title) {

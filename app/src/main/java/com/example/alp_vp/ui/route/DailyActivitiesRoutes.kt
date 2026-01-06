@@ -97,7 +97,10 @@ fun DailyActivitiesRoutes() {
             startDestination = DailyScreens.HOME.title
         ) {
             composable(DailyScreens.HOME.title) {
-                HomeView(dailyActivityViewModel = dailyActivityViewModel)
+                HomeView(
+                    navController = navController,
+                    dailyActivityViewModel = dailyActivityViewModel
+                )
             }
             composable(DailyScreens.WATER.title) {
                 Text("Water Screen")

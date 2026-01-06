@@ -20,14 +20,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
 import com.example.alp_vp.ui.viewmodel.HomeViewModel
+import androidx.navigation.NavController
 
 @Composable
 fun HomeView(
-    viewModel: HomeViewModel = viewModel(),
-    dailyActivityViewModel: DailyActivityViewModel = viewModel(),
+    navController: NavController,
+    viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(LocalContext.current)),
+    dailyActivityViewModel: DailyActivityViewModel = viewModel(factory = DailyActivityViewModel.Factory(LocalContext.current)),
     dateLabel: String = "Wednesday, December 3, 2024",
     streakDays: Int = 5,
     avgScore: Int = 0,
