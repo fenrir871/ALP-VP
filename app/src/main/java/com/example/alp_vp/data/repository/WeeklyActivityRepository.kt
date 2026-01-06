@@ -6,7 +6,7 @@ import retrofit2.Response
 
 class WeeklyActivityRepository(private val service: WeeklyActivityService) {
 
-    suspend fun getWeeklySummaryByUserId(userId: Int): Response<WeeklySummaryResponse> {
+    suspend fun getWeeklySummaryByUserId(userId: Int): Response<ResponseWeeklySummary> {
         return service.getWeeklySummaryByUserId(userId)
     }
 
