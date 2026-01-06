@@ -1,5 +1,4 @@
-package com.example.alp_vp.ui.viewmodel
-
+// kotlin
 package com.example.alp_vp.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -34,11 +33,12 @@ class HomeViewModel(
                 val user = userRepository.getCurrentUser()
                 _uiState.value = _uiState.value.copy(
                     username = user?.username ?: "User",
-                    isLoading = false
+                    isLoading = false,
+                    error = null
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    error = e.message,
+                    error = e.message ?: "Unknown error",
                     isLoading = false
                 )
             }

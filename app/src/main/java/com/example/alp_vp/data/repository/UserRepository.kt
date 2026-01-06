@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.example.alp_vp.ui.model.UserModel
 
+
 class UserRepository(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -27,6 +28,12 @@ class UserRepository(context: Context) {
             putBoolean(KEY_IS_LOGGED_IN, true)
             apply()
         }
+    }
+
+
+
+    suspend fun getCurrentUser(): UserModel? {
+        return localDataSource.getCurrentUser()
     }
 
     fun getUser(): UserModel? {
