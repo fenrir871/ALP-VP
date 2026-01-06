@@ -1,26 +1,38 @@
-// kotlin
 package com.example.alp_vp.ui.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.alp_vp.data.repository.GoalsRepository
+import com.example.alp_vp.data.repository.StreakRepository
 import com.example.alp_vp.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-
-
+import java.text.SimpleDateFormat
+import java.util.*
 
 data class HomeUiState(
     val username: String = "",
+    val currentDate: String = getCurrentFormattedDate(),  // Not currentDateLabel
+    val streakDays: Int = 0,
+    val avgScore: Int = 0,
+    val goalsCompleted: Int = 0,
+    val goalsTotal: Int = 4,
     val isLoading: Boolean = true,
     val error: String? = null
 )
+private fun getCurrentFormattedDate(): String {
+    val dateFormat = SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault())
+    return dateFormat.format(Date())
+}
 
 class HomeViewModel(
-    private val userRepository: UserRepository? = null // Add default null or provide default instance
+    private val userRepository: UserRepository,
+    private val streakRepository: StreakRepository,
+    private val goalsRepository: GoalsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -28,86 +40,63 @@ class HomeViewModel(
 
     init {
         loadUserData()
+        loadStreakData()
     }
 
     private fun loadUserData() {
         viewModelScope.launch {
             try {
-                _uiState.value = _uiState.value.copy(isLoading = true)
-                val user = userRepository?.getCurrentUser()
+                val user = userRepository.getCurrentUser()
                 _uiState.value = _uiState.value.copy(
-                    username = user?.username ?: "User",
-                    isLoading = false,
-                    error = null
+                    username = user?.fullName ?: "Guest",
+                    isLoading = false
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    error = e.message ?: "Unknown error",
+                    error = e.message,
                     isLoading = false
                 )
             }
         }
     }
 
-
-    data class WeeklyStats(
-        val sleepAvg: Float = 0f,
-        val sleepScore: Int = 0,
-        val waterAvg: Int = 0,
-        val waterScore: Int = 0,
-        val stepsAvg: Int = 0,
-        val stepsScore: Int = 0,
-        val caloriesAvg: Int = 0,
-        val caloriesScore: Int = 0
-    )
-
-    private val _weeklyStats = MutableStateFlow(WeeklyStats())
-    val weeklyStats: StateFlow<WeeklyStats> = _weeklyStats.asStateFlow()
-
-    init {
-        calculateWeeklyStats()
-    }
-
-    private fun calculateWeeklyStats() {
+    private fun loadStreakData() {
         viewModelScope.launch {
-            try {
-                // Get last 7 days of data from your repository
-                val last7Days = repository.getLastSevenDaysActivities()
-
-                if (last7Days.isEmpty()) {
-                    _weeklyStats.value = WeeklyStats() // Keep zeros if no data
-                    return@launch
-                }
-
-                val avgSleep = last7Days.map { it.sleepHours }.average().toFloat()
-                val avgWater = last7Days.map { it.waterGlasses }.average().toInt()
-                val avgSteps = last7Days.map { it.steps }.average().toInt()
-                val avgCalories = last7Days.map { it.calories }.average().toInt()
-
-                _weeklyStats.value = WeeklyStats(
-                    sleepAvg = avgSleep,
-                    sleepScore = calculateSleepScore(avgSleep),
-                    waterAvg = avgWater,
-                    waterScore = calculateWaterScore(avgWater.toFloat()),
-                    stepsAvg = avgSteps,
-                    stepsScore = calculateStepsScore(avgSteps.toFloat()),
-                    caloriesAvg = avgCalories,
-                    caloriesScore = calculateCaloriesScore(avgCalories.toFloat())
-                )
-            } catch (e: Exception) {
-                // Handle error - keep zeros
-                _weeklyStats.value = WeeklyStats()
-            }
+            val streak = streakRepository.getStreak()
+            _uiState.value = _uiState.value.copy(
+                streakDays = streak
+            )
         }
     }
 
+    fun updateStats(
+        sleepScore: Float,
+        waterScore: Float,
+        stepsScore: Float,
+        caloriesScore: Float
+    ) {
+        viewModelScope.launch {
+            val avgScore = ((sleepScore + waterScore + stepsScore + caloriesScore) / 8).toInt()
 
+            val goalsCompleted = listOf(sleepScore, waterScore, stepsScore, caloriesScore)
+                .count { it >= 15f }
+
+            _uiState.value = _uiState.value.copy(
+                avgScore = avgScore,
+                goalsCompleted = goalsCompleted
+            )
+        }
+    }
 
     companion object {
         fun Factory(context: Context): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return HomeViewModel(UserRepository(context)) as T
+                return HomeViewModel(
+                    UserRepository(context),
+                    StreakRepository(context),
+                    GoalsRepository(context)
+                ) as T
             }
         }
     }

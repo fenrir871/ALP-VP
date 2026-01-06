@@ -29,19 +29,11 @@ import com.example.alp_vp.ui.viewmodel.WeeklyViewModel
 import kotlin.toString
 
 @Composable
-
 fun HomeView(
     navController: NavController,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(LocalContext.current)),
     dailyActivityViewModel: DailyActivityViewModel = viewModel(factory = DailyActivityViewModel.Factory(LocalContext.current)),
-    weeklyViewModel: WeeklyViewModel = viewModel(
-        factory = WeeklyViewModel.Factory(LocalContext.current)
-    ),
-    dateLabel: String = "Wednesday, December 3, 2024",
-    streakDays: Int = 5,
-    avgScore: Int = 0,
-    goalsDone: Int = 3,
-    goalsTotal: Int = 4
+    weeklyViewModel: WeeklyViewModel = viewModel(factory = WeeklyViewModel.Factory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val weeklyStats by weeklyViewModel.weeklyStats.collectAsState()
@@ -61,9 +53,12 @@ fun HomeView(
     val stepsMessage by dailyActivityViewModel._stepsMessage.collectAsState()
     val caloriesMessage by dailyActivityViewModel._caloriesMessage.collectAsState()
 
-    // Fetch weekly summary when view loads
+    LaunchedEffect(sleepScore, waterScore, stepsScore, caloriesScore) {
+        viewModel.updateStats(sleepScore, waterScore, stepsScore, caloriesScore)
+    }
+
     LaunchedEffect(Unit) {
-        weeklyViewModel.fetchWeeklySummary(userId = 1) // Replace with actual user ID
+        weeklyViewModel.fetchWeeklySummary(userId = 1)
     }
 
     Surface(color = Color(0xFFF3F6FB), modifier = Modifier.fillMaxSize()) {
@@ -80,11 +75,11 @@ fun HomeView(
                 item {
                     HeaderCard(
                         username = uiState.username,
-                        dateLabel = dateLabel,
-                        streakDays = streakDays,
-                        avgScore = avgScore,
-                        goalsDone = goalsDone,
-                        goalsTotal = goalsTotal
+                        dateLabel = uiState.currentDate,  // Change this line
+                        streakDays = uiState.streakDays,
+                        avgScore = uiState.avgScore,
+                        goalsDone = uiState.goalsCompleted,
+                        goalsTotal = uiState.goalsTotal
                     )
                 }
                 item {
@@ -132,8 +127,6 @@ fun HomeView(
         }
     }
 }
-
-
 @Composable
 private fun InputDataCard(
     sleepHours: String,
