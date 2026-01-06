@@ -63,18 +63,7 @@ fun AppNavigation(tokenManager: TokenManager) {
         composable(Screen.Home.route) {
             val username by tokenManager.getUsername().collectAsState(initial = "User")
 
-            HomeView(
-                username = username ?: "User",
-                dateLabel = "Wednesday, December 3, 2024",
-                streakDays = 5,
-                avgScore = 0,
-                goalsDone = 3,
-                goalsTotal = 4,
-                steps = 10000,
-                calories = 2000,
-                waterGlasses = 8,
-                sleepHours = 7.5f
-            )
+            HomeView()
         }
 
         composable(Screen.Friend.route) {

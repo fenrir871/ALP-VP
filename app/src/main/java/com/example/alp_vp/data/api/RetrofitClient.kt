@@ -68,6 +68,11 @@ object RetrofitClient {
         retrofit.create(FriendApiService::class.java)
     }
 
+    // User API Service
+    val userApi: UserApiService by lazy {
+        retrofit.create(UserApiService::class.java)
+    }
+
     // Add more API services here as needed
     // val userApi: UserApiService by lazy { ... }
     // val activityApi: ActivityApiService by lazy { ... }
