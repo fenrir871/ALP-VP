@@ -1,6 +1,6 @@
 package com.example.alp_vp.data.repository
 
-import com.example.alp_vp.data.Service.DailyActivityService
+import com.example.alp_vp.data.service.DailyActivityService
 import com.example.alp_vp.data.dto.CreateTodayActivityRequest
 import com.example.alp_vp.data.dto.TodayActivityResponse
 import com.example.alp_vp.data.dto.UpdateTodayActivityRequest

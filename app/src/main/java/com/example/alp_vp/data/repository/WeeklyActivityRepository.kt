@@ -1,6 +1,6 @@
 package com.example.alp_vp.data.repository
 
-import com.example.alp_vp.data.Service.WeeklyActivityService
+import com.example.alp_vp.data.service.WeeklyActivityService
 import com.example.alp_vp.data.dto.ResponseWeeklySummary
 import retrofit2.Response
 

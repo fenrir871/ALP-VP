@@ -1,6 +1,6 @@
 package com.example.alp_vp.data.container
 
-import com.example.alp_vp.data.Service.DailyActivityService
+import com.example.alp_vp.data.service.DailyActivityService
 import com.example.alp_vp.data.repository.DailyActivityRepository
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
