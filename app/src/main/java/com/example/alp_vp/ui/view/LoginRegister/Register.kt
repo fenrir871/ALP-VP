@@ -1,47 +1,29 @@
 package com.example.alp_vp.ui.view.LoginRegister
 
-import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alp_vp.ui.model.UserModel
-import com.example.alp_vp.data.repository.UserRepository
 
 
 @Composable
-fun Register(
-    onRegisterSuccess: () -> Unit = {},
-    onNavigateToLogin: () -> Unit = {}
-) {
-    val context = LocalContext.current
-    val userRepository = remember { UserRepository(context) }
-
-    val blueStart = Color(0xFF2A7DE1)
-    val blueEnd = Color(0xFF3BB0FF)
-
-    var fullName by remember { mutableStateOf("") }
+fun Register() {
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
@@ -50,103 +32,84 @@ fun Register(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFF5F7FA)) {
+    // Test Merge Buat Bebe
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top banner with rounded bottom corners and gradient
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(320.dp)
-                    .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 45.dp))
-                    .background(Brush.verticalGradient(listOf(blueStart, blueEnd)))
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
+                    .background(Color(0xFF2196F3)),
+                contentAlignment = Alignment.Center
             ) {
-                // Decorative circles
-                Box(
-                    modifier = Modifier
-                        .size(220.dp)
-                        .offset(x = 220.dp, y = (-40).dp)
-                        .clip(CircleShape)
-                        .background(Color(0x22FFFFFF))
-                )
-                Box(
-                    modifier = Modifier
-                        .size(140.dp)
-                        .offset(x = (-60).dp, y = 60.dp)
-                        .clip(CircleShape)
-                        .background(Color(0x22FFFFFF))
-                )
-
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 64.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(top = 32.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(84.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(Color(0x33FFFFFF)),
-                        contentAlignment = Alignment.Center
+                    Surface(
+                        modifier = Modifier.size(64.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFF64B5F6).copy(alpha = 0.5f)
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.FavoriteBorder,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(36.dp)
-                        )
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.FavoriteBorder,
+                                contentDescription = "Heart Icon",
+                                tint = Color.White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                     }
-                    Spacer(Modifier.height(16.dp))
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     Text(
                         text = "Create Account",
-                        color = Color.White,
-                        fontSize = 26.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
+                        color = Color.White
                     )
-                    Spacer(Modifier.height(6.dp))
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
                     Text(
                         text = "Start your health journey today",
-                        color = Color(0xEEFFFFFF),
                         fontSize = 14.sp,
-                        textAlign = TextAlign.Center
+                        color = Color.White.copy(alpha = 0.9f)
                     )
                 }
             }
 
-            // White Card with form content - overlapping the banner
+            // White Card with form content
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .offset(y = (-40).dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                    .offset(y = (-16).dp),
                 shape = RoundedCornerShape(24.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
-                Column(Modifier.padding(horizontal = 16.dp, vertical = 20.dp)) {
-                    CustomTextField(
-                        label = "Full Name",
-                        value = fullName,
-                        onValueChange = { fullName = it },
-                        placeholder = "Enter your full name",
-                        leadingIcon = Icons.Outlined.Person,
-                        blueStart = blueStart
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier.padding(20.dp)
+                ) {
 
                     CustomTextField(
                         label = "Username",
                         value = username,
                         onValueChange = { username = it },
                         placeholder = "Enter your username",
-                        leadingIcon = Icons.Outlined.AlternateEmail,
-                        blueStart = blueStart
+                        leadingIcon = Icons.Default.AlternateEmail
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -156,8 +119,7 @@ fun Register(
                         value = email,
                         onValueChange = { email = it },
                         placeholder = "Enter your email",
-                        leadingIcon = Icons.Outlined.Email,
-                        blueStart = blueStart
+                        leadingIcon = Icons.Default.Email
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -167,8 +129,7 @@ fun Register(
                         value = phone,
                         onValueChange = { phone = it },
                         placeholder = "Enter your phone number",
-                        leadingIcon = Icons.Outlined.Phone,
-                        blueStart = blueStart
+                        leadingIcon = Icons.Default.Phone
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -178,11 +139,10 @@ fun Register(
                         value = password,
                         onValueChange = { password = it },
                         placeholder = "Create a password",
-                        leadingIcon = Icons.Outlined.Lock,
+                        leadingIcon = Icons.Default.Lock,
                         isPassword = true,
                         passwordVisible = passwordVisible,
-                        onTogglePassword = { passwordVisible = !passwordVisible },
-                        blueStart = blueStart
+                        onTogglePassword = { passwordVisible = !passwordVisible }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -192,102 +152,73 @@ fun Register(
                         value = confirmPassword,
                         onValueChange = { confirmPassword = it },
                         placeholder = "Confirm your password",
-                        leadingIcon = Icons.Outlined.Lock,
+                        leadingIcon = Icons.Default.Lock,
                         isPassword = true,
                         passwordVisible = confirmPasswordVisible,
-                        onTogglePassword = { confirmPasswordVisible = !confirmPasswordVisible },
-                        blueStart = blueStart
+                        onTogglePassword = { confirmPasswordVisible = !confirmPasswordVisible }
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Box(
+                    Button(
+                        onClick = { /* Handle registration */ },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Brush.horizontalGradient(listOf(blueStart, blueEnd)))
-                            .clickable {
-                                // Validation
-                                when {
-                                    fullName.isBlank() -> {
-                                        Toast.makeText(context, "Please enter your full name", Toast.LENGTH_SHORT).show()
-                                    }
-                                    username.isBlank() -> {
-                                        Toast.makeText(context, "Please enter a username", Toast.LENGTH_SHORT).show()
-                                    }
-                                    email.isBlank() -> {
-                                        Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
-                                    }
-                                    !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                                        Toast.makeText(context, "Please enter a valid email", Toast.LENGTH_SHORT).show()
-                                    }
-                                    phone.isBlank() -> {
-                                        Toast.makeText(context, "Please enter your phone number", Toast.LENGTH_SHORT).show()
-                                    }
-                                    password.isBlank() -> {
-                                        Toast.makeText(context, "Please enter a password", Toast.LENGTH_SHORT).show()
-                                    }
-                                    password.length < 6 -> {
-                                        Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
-                                    }
-                                    password != confirmPassword -> {
-                                        Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
-                                    }
-                                    else -> {
-                                        // Create and save user
-                                        val user = UserModel(
-                                            fullName = fullName,
-                                            username = username,
-                                            email = email,
-                                            phone = phone,
-                                            password = password
-                                        )
-                                        userRepository.saveUser(user)
-                                        Toast.makeText(context, "Account created successfully!", Toast.LENGTH_SHORT).show()
-                                        onRegisterSuccess()
-                                    }
-                                }
-                            },
-                        contentAlignment = Alignment.Center
+                            .height(52.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2196F3)
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp
+                        )
                     ) {
-                        Text("Create Account", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                        Text(
+                            text = "Create Account",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
                     }
 
-                    Spacer(Modifier.height(16.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        HorizontalDivider(Modifier.weight(1f), color = Color(0xFFE8EDF2))
-                        Text("  or  ", color = Color(0xFF9AA7B8), fontSize = 12.sp)
-                        HorizontalDivider(Modifier.weight(1f), color = Color(0xFFE8EDF2))
-                    }
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = "or",
+                        fontSize = 13.sp,
+                        color = Color(0xFF8E98A3),
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text("Already have an account? ", color = Color(0xFF6C7A92), fontSize = 13.sp)
                         Text(
-                            "Sign In",
-                            color = blueStart,
-                            fontWeight = FontWeight.SemiBold,
+                            text = "Already have an account? ",
                             fontSize = 13.sp,
-                            modifier = Modifier.clickable { onNavigateToLogin() }
+                            color = Color(0xFF5A6978)
                         )
+                        Text(
+                            text = "Sign In",
+                            fontSize = 13.sp,
+                            color = Color(0xFF2196F3),
+                            fontWeight = FontWeight.SemiBold
+                        )
+
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
 @Composable
-fun CustomTextField(
+private fun CustomTextField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
@@ -295,40 +226,55 @@ fun CustomTextField(
     leadingIcon: ImageVector,
     isPassword: Boolean = false,
     passwordVisible: Boolean = false,
-    onTogglePassword: (() -> Unit)? = null,
-    blueStart: Color
+    onTogglePassword: (() -> Unit)? = null
 ) {
-    Text(label, color = Color(0xFF6C7A92), fontSize = 12.sp, fontWeight = FontWeight.Medium)
-    Spacer(Modifier.height(8.dp))
-    OutlinedTextField(
+    Text(
+        text = label,
+        fontSize = 13.sp,
+        color = Color(0xFF5A6978),
+        fontWeight = FontWeight.Medium,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+    TextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp),
+        placeholder = {
+            Text(
+                text = placeholder,
+                fontSize = 14.sp,
+                color = Color(0xFFADB5BD)
+            )
+        },
         leadingIcon = {
-            Icon(leadingIcon, contentDescription = null, tint = Color(0xFF9AA7B8))
+            Icon(
+                imageVector = leadingIcon,
+                contentDescription = null,
+                tint = Color(0xFF8E98A3),
+                modifier = Modifier.size(20.dp)
+            )
         },
         trailingIcon = if (isPassword && onTogglePassword != null) {
             {
                 IconButton(onClick = onTogglePassword) {
                     Icon(
-                        imageVector = if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                        imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                         contentDescription = "Toggle password visibility",
-                        tint = Color(0xFF9AA7B8)
+                        tint = Color(0xFF8E98A3),
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
         } else null,
-        placeholder = { Text(placeholder, color = Color(0xFF9AA7B8), fontSize = 14.sp) },
         visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
-        shape = RoundedCornerShape(16.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            unfocusedBorderColor = Color(0xFFE8EDF2),
-            focusedBorderColor = blueStart,
-            unfocusedContainerColor = Color(0xFFF9FBFD),
-            focusedContainerColor = Color(0xFFF9FBFD),
-            cursorColor = blueStart
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color(0xFFF5F7FA),
+            unfocusedContainerColor = Color(0xFFF5F7FA),
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedTextColor = Color(0xFF2D3748),
+            unfocusedTextColor = Color(0xFF2D3748)
         ),
         singleLine = true
     )
@@ -336,6 +282,6 @@ fun CustomTextField(
 
 @Composable
 @Preview
-fun RegisterView() {
+private fun RegisterView() {
     Register()
 }

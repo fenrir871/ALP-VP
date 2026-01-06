@@ -3,145 +3,111 @@ package com.example.alp_vp.ui.view
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alp_vp.data.repository.UserRepository
 
 @Composable
-fun ProfileView(
-    onLogout: () -> Unit = {}
-) {
-    val context = LocalContext.current
-    val userRepository = remember { UserRepository(context) }
-    val user = remember { userRepository.getUser() }
-
-    val blueStart = Color(0xFF2A7DE1)
-    val blueEnd = Color(0xFF3BB0FF)
-    val scrollState = rememberScrollState()
-
+fun ProfileView() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F7FA))
-            .verticalScroll(scrollState)
+            .background(Color(0xFFF5F5F5))
     ) {
         // Header Section
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(240.dp)
-                .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 45.dp))
+                .height(220.dp)
                 .background(
-                    Brush.verticalGradient(
-                        colors = listOf(blueStart, blueEnd)
-                    )
-                ),
-            contentAlignment = Alignment.Center
+                    Brush.horizontalGradient(
+                        colors = listOf(Color(0xFF5BA3F5), Color(0xFF4A9AED))
+                    ),
+                    shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+                )
         ) {
-            // Decorative circles
-            Box(
-                modifier = Modifier
-                    .size(220.dp)
-                    .offset(x = 220.dp, y = (-40).dp)
-                    .clip(CircleShape)
-                    .background(Color(0x22FFFFFF))
-            )
-            Box(
-                modifier = Modifier
-                    .size(140.dp)
-                    .offset(x = (-60).dp, y = 60.dp)
-                    .clip(CircleShape)
-                    .background(Color(0x22FFFFFF))
-            )
 
-            Column(
+        Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(top = 32.dp)
             ) {
-                // Profile Avatar - Circular with white border
+                // Profile Avatar
                 Box(
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
+                        .border(4.dp, Color.White, CircleShape)
                         .background(Color.White)
-                        .border(4.dp, Color.White, CircleShape),
-                    contentAlignment = Alignment.Center
                 ) {
+                    // Replace with your avatar image
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Profile Picture",
-                        tint = Color(0xFF2A7DE1),
-                        modifier = Modifier.size(50.dp)
+                        tint = Color(0xFFFF8A65),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = user?.fullName ?: "Guest User",
+                    text = "bbbb",
                     color = Color.White,
-                    fontSize = 26.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
-
                 Text(
-                    text = "@${user?.username ?: "guest"}",
-                    color = Color(0xEEFFFFFF),
+                    text = "@bbbb",
+                    color = Color.White.copy(alpha = 0.9f),
                     fontSize = 14.sp
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
         // Stats Section
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            shape = RoundedCornerShape(24.dp),
+                .padding(horizontal = 24.dp)
+                .offset(y = (-30).dp),
+            shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            elevation = CardDefaults.cardElevation(4.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 24.dp),
+                    .padding(vertical = 20.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatItem(value = "95", label = "Highest Score", color = blueStart)
-                HorizontalDivider(
+                StatItem(value = "95", label = "Highest Score", color = Color(0xFF4A90E2))
+                Divider(
                     modifier = Modifier
                         .width(1.dp)
-                        .height(50.dp),
-                    color = Color(0xFFE8EDF2)
+                        .height(40.dp),
+                    color = Color.LightGray
                 )
                 StatItem(value = "15", label = "Friends", color = Color(0xFFFF6B6B))
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         // Personal Information Section
         Column(
@@ -153,79 +119,63 @@ fun ProfileView(
                 text = "Personal Information",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1D26),
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(vertical = 16.dp)
             )
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                elevation = CardDefaults.cardElevation(2.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp)
+                    modifier = Modifier.padding(16.dp)
                 ) {
                     InfoItem(
                         icon = Icons.Default.Person,
                         label = "Full Name",
-                        value = user?.fullName ?: "Not set",
+                        value = "bbbb",
                         iconTint = Color(0xFF4A90E2)
                     )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 16.dp),
-                        color = Color(0xFFE8EDF2)
-                    )
+                    Divider(modifier = Modifier.padding(vertical = 12.dp))
 
                     InfoItem(
                         icon = Icons.Default.AccountCircle,
                         label = "Username",
-                        value = user?.username ?: "Not set",
+                        value = "bbbb",
                         iconTint = Color(0xFF9C27B0)
                     )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 16.dp),
-                        color = Color(0xFFE8EDF2)
-                    )
+                    Divider(modifier = Modifier.padding(vertical = 12.dp))
 
                     InfoItem(
                         icon = Icons.Default.Phone,
                         label = "Phone",
-                        value = user?.phone ?: "Not set",
+                        value = "1234567899",
                         iconTint = Color(0xFFFF9800)
                     )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 16.dp),
-                        color = Color(0xFFE8EDF2)
-                    )
+                    Divider(modifier = Modifier.padding(vertical = 12.dp))
 
                     InfoItem(
                         icon = Icons.Default.Email,
                         label = "Email",
-                        value = user?.email ?: "Not set",
+                        value = "wahyudibertrand02@gmail.com",
                         iconTint = Color(0xFF4CAF50)
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
         // Logout Button
         Button(
-            onClick = {
-                userRepository.logout()
-                onLogout()
-            },
+            onClick = { /* Handle logout */ },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 100.dp)  // Add extra padding for bottom navbar
+                .padding(horizontal = 24.dp, vertical = 16.dp)
                 .height(56.dp),
             shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFF3B30)
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF3B30))
         ) {
             Icon(
                 imageVector = Icons.Default.ExitToApp,
@@ -243,6 +193,7 @@ fun ProfileView(
 }
 
 @Composable
+
 fun StatItem(value: String, label: String, color: Color) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
@@ -257,12 +208,12 @@ fun StatItem(value: String, label: String, color: Color) {
             text = label,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
-            color = Color(0xFF6C7A92)
+            color = Color.Black
         )
         Text(
             text = "out of 100",
             fontSize = 11.sp,
-            color = Color(0xFF9AA7B8)
+            color = Color.Gray
         )
     }
 }
@@ -285,21 +236,20 @@ fun InfoItem(icon: ImageVector, label: String, value: String, iconTint: Color) {
             Text(
                 text = label,
                 fontSize = 12.sp,
-                color = Color(0xFF9AA7B8)
+                color = Color.Gray
             )
-            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = value,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF1A1D26)
+                color = Color.Black
             )
         }
         IconButton(onClick = { /* Handle edit */ }) {
             Icon(
                 imageVector = Icons.Default.Edit,
                 contentDescription = "Edit",
-                tint = Color(0xFF9AA7B8),
+                tint = Color.Gray,
                 modifier = Modifier.size(20.dp)
             )
         }

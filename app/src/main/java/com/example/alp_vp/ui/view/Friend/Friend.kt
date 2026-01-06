@@ -1,25 +1,6 @@
 package com.example.alp_vp.ui.view.Friend
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.outlined.People
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -29,261 +10,157 @@ import com.example.alp_vp.data.repository.UserRepository
 import com.example.alp_vp.ui.model.Friend
 
 @Composable
-fun Friend() {
-    val context = LocalContext.current
-    val userRepository = remember { UserRepository(context) }
-    val friendRepository = remember { FriendRepository(context) }
-    val currentUser = remember { userRepository.getUser() }
+fun Friend(
+    viewModel: FriendViewModel = viewModel()
+) {
+    val leaderboard by viewModel.leaderboard.collectAsState()
+    val pendingRequests by viewModel.pendingRequests.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val successMessage by viewModel.successMessage.collectAsState()
+
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabs = listOf("Leaderboard", "Requests")
 
     val blueStart = Color(0xFF2A7DE1)
     val blueEnd = Color(0xFF3BB0FF)
 
-    var searchQuery by remember { mutableStateOf("") }
+    // Load data on first composition
+    LaunchedEffect(Unit) {
+        viewModel.loadLeaderboard()
+        viewModel.loadPendingRequests()
+    }
 
-    // Get friends from repository
-    val allFriends = remember {
-        val friendsFromRepo = friendRepository.getAllFriends()
-        mutableListOf<Friend>().apply {
-            // Add friends from repository
-            addAll(friendsFromRepo)
-
-            // Add current user to the list if they exist
-            currentUser?.let { user ->
-                // For demo, using a random score. In real app, get from user's actual score
-                val userScore = 76 // This should come from user's actual game data
-                add(Friend(
-                    rank = 0,
-                    id = 999,
-                    name = user.fullName,
-                    username = "@${user.username}",
-                    highestScore = userScore,
-                    isCurrentUser = true
-                ))
-            }
+    // Show success/error messages
+    LaunchedEffect(successMessage, errorMessage) {
+        if (successMessage != null || errorMessage != null) {
+            kotlinx.coroutines.delay(3000)
+            viewModel.clearMessages()
         }
     }
 
-    // Sort by score (descending) and assign ranks
-    val friends = remember(allFriends) {
-        allFriends
-            .sortedByDescending { it.highestScore }
-            .mapIndexed { index, friend ->
-                friend.copy(rank = index + 1)
-            }
-    }
-
-    // Calculate current user's rank
-    val userRank = friends.find { it.isCurrentUser }?.rank
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F7FA))
-    ) {
-        // Header Section with gradient
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-                .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 45.dp))
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(blueStart, blueEnd)
-                    )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Friends", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = blueStart,
+                    titleContentColor = Color.White
                 )
-        ) {
-            // Decorative circles
-            Box(
-                modifier = Modifier
-                    .size(220.dp)
-                    .offset(x = 220.dp, y = (-40).dp)
-                    .clip(CircleShape)
-                    .background(Color(0x22FFFFFF))
-            )
-            Box(
-                modifier = Modifier
-                    .size(140.dp)
-                    .offset(x = (-60).dp, y = 60.dp)
-                    .clip(CircleShape)
-                    .background(Color(0x22FFFFFF))
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 50.dp, start = 24.dp, end = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Left side: Icon in rounded rectangle and text
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Rounded rectangle background for icon (like Login page)
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color(0x33FFFFFF)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.People,
-                            contentDescription = "Friends",
-                            tint = Color.White,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Column {
-                        Text(
-                            text = "All Friends",
-                            color = Color.White,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Text(
-                            text = "Compete with your friends",
-                            color = Color(0xEEFFFFFF),
-                            fontSize = 13.sp
-                        )
-                    }
-                }
-
-                // Right side: Rank badge
-                Surface(
-                    modifier = Modifier
-                        .size(70.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color(0x33FFFFFF)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "Your Rank",
-                            color = Color.White.copy(alpha = 0.9f),
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = if (userRank != null) "#$userRank" else "N/A",
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-        }
-
-        // Search bar (floating above the list)
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .offset(y = (-30).dp),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp),
-                leadingIcon = {
-                    Icon(
-                        Icons.Outlined.Search,
-                        contentDescription = "Search",
-                        tint = Color(0xFF9AA7B8)
-                    )
-                },
-                placeholder = {
-                    Text(
-                        "Search friends...",
-                        color = Color(0xFF9AA7B8),
-                        fontSize = 14.sp
-                    )
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White,
-                    cursorColor = blueStart
-                ),
-                shape = RoundedCornerShape(20.dp),
-                singleLine = true
             )
         }
-
-        // Friends List
-        LazyColumn(
+    ) { padding ->
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .offset(y = (-20).dp),
-            contentPadding = PaddingValues(
-                start = 24.dp,
-                end = 24.dp,
-                top = 8.dp,
-                bottom = 100.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(padding)
+                .background(Color(0xFFF5F7FA))
         ) {
-            items(friends.filter {
-                it.name.contains(searchQuery, ignoreCase = true) ||
-                it.username.contains(searchQuery, ignoreCase = true)
-            }) { friend ->
-                FriendCard(friend = friend, blueColor = blueStart)
+            // Tabs
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = Color.White,
+                contentColor = blueStart
+            ) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = { Text(title, fontWeight = FontWeight.SemiBold) }
+                    )
+                }
+            }
+
+            // Messages
+            errorMessage?.let {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE))
+                ) {
+                    Text(
+                        text = it,
+                        modifier = Modifier.padding(12.dp),
+                        color = Color(0xFFC62828)
+                    )
+                }
+            }
+
+            successMessage?.let {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
+                ) {
+                    Text(
+                        text = it,
+                        modifier = Modifier.padding(12.dp),
+                        color = Color(0xFF2E7D32)
+                    )
+                }
+            }
+
+            // Content
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = blueStart)
+                }
+            } else {
+                when (selectedTab) {
+                    0 -> LeaderboardTab(leaderboard)
+                    1 -> PendingRequestsTab(pendingRequests, viewModel)
+                }
             }
         }
     }
 }
 
 @Composable
-fun FriendCard(friend: Friend, blueColor: Color) {
-    // Determine rank color based on position
-    val rankBackgroundColor = when(friend.rank) {
+fun LeaderboardTab(leaderboard: List<LeaderboardItem>) {
+    if (leaderboard.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "No friends yet. Add some friends!",
+                color = Color.Gray,
+                fontSize = 14.sp
+            )
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(leaderboard) { friend ->
+                LeaderboardCard(friend)
+            }
+        }
+    }
+}
+
+@Composable
+fun LeaderboardCard(friend: LeaderboardItem) {
+    val blueStart = Color(0xFF2A7DE1)
+    val rankColor = when (friend.rank) {
         1 -> Color(0xFFFFD700) // Gold
         2 -> Color(0xFFC0C0C0) // Silver
         3 -> Color(0xFFCD7F32) // Bronze
-        else -> Color(0xFFE0E0E0) // Gray
-    }
-
-    val rankTextColor = when(friend.rank) {
-        1 -> Color(0xFFB8860B) // Dark gold
-        2 -> Color(0xFF757575) // Dark silver
-        3 -> Color(0xFF8B4513) // Dark bronze
-        else -> Color(0xFF757575) // Dark gray
+        else -> Color.Gray
     }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(
-                if (friend.isCurrentUser) {
-                    Modifier.border(2.dp, blueColor, RoundedCornerShape(20.dp))
-                } else {
-                    Modifier
-                }
-            ),
-        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (friend.isCurrentUser) 6.dp else 3.dp
-        )
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
@@ -291,80 +168,150 @@ fun FriendCard(friend: Friend, blueColor: Color) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Rank number with color coding
+            // Rank badge
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
-                    .background(rankBackgroundColor),
+                    .background(rankColor.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "#${friend.rank}",
-                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = rankTextColor
+                    fontSize = 16.sp,
+                    color = rankColor
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(Modifier.width(16.dp))
 
-            // Profile Avatar
+            // Friend info
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = friend.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color(0xFF2D3748)
+                )
+                Text(
+                    text = "@${friend.username}",
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+            }
+
+            // Score
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = blueStart.copy(alpha = 0.1f)
+            ) {
+                Text(
+                    text = "${friend.overall_score}",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = blueStart
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PendingRequestsTab(
+    requests: List<PendingFriendRequest>,
+    viewModel: FriendViewModel
+) {
+    if (requests.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "No pending requests",
+                color = Color.Gray,
+                fontSize = 14.sp
+            )
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(requests) { request ->
+                PendingRequestCard(request, viewModel)
+            }
+        }
+    }
+}
+
+@Composable
+fun PendingRequestCard(
+    request: PendingFriendRequest,
+    viewModel: FriendViewModel
+) {
+    val blueStart = Color(0xFF2A7DE1)
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // User icon
             Box(
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
-                    .background(blueColor.copy(alpha = 0.1f))
-                    .border(2.dp, blueColor.copy(alpha = 0.3f), CircleShape),
+                    .background(blueStart.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
-                    contentDescription = "Profile",
-                    tint = blueColor,
-                    modifier = Modifier.size(26.dp)
+                    contentDescription = null,
+                    tint = blueStart,
+                    modifier = Modifier.size(28.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(Modifier.width(16.dp))
 
-            // Friend Info - Name and Points
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+            // Friend info
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = friend.name,
+                    text = request.friend.name,
+                    fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF1A1D26)
+                    color = Color(0xFF2D3748)
                 )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
                 Text(
-                    text = "${friend.highestScore} points",
+                    text = "@${request.friend.username}",
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = blueColor
+                    color = Color.Gray
                 )
             }
 
-            // Add Friend Button (only for other users, not current user)
-            if (!friend.isCurrentUser) {
-                IconButton(
-                    onClick = { /* Handle add/remove friend */ },
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(blueColor.copy(alpha = 0.1f))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PersonAdd,
-                        contentDescription = "Add Friend",
-                        tint = blueColor,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+            // Accept button
+            IconButton(
+                onClick = { viewModel.acceptFriendRequest(request.id) },
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF4CAF50))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Accept",
+                    tint = Color.White
+                )
             }
         }
     }
