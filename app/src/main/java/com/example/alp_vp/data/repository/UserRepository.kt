@@ -26,6 +26,27 @@ class UserRepository(context: Context) {
         }
     }
 
+    // Get user data synchronously from SharedPreferences
+    fun getUser(): ResponseUser? {
+        val username = sharedPreferences.getString("username", null)
+        val userId = sharedPreferences.getString("user_id", null)
+        val email = sharedPreferences.getString("email", null)
+        val phone = sharedPreferences.getString("phone", null)
+        val createdAt = sharedPreferences.getString("createdAt", null)
+
+        return if (username != null && userId != null) {
+            ResponseUser(
+                id = userId.toIntOrNull() ?: 0,
+                username = username,
+                email = email ?: "",
+                phone = phone ?: "",
+                createdAt = createdAt ?: ""
+            )
+        } else {
+            null
+        }
+    }
+
     // Get current logged-in user from local storage
     suspend fun getCurrentUser(): ResponseUser? {
         val username = sharedPreferences.getString("username", null)
