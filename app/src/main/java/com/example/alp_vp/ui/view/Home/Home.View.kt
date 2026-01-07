@@ -1,4 +1,4 @@
-package com.example.alp_vp.ui.view
+package com.example.alp_vp.ui.view.Home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,9 +23,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
 import com.example.alp_vp.ui.viewmodel.HomeViewModel
-import kotlin.text.toFloatOrNull
-import kotlin.text.toIntOrNull
-import kotlin.toString
 
 @Composable
 fun HomeView(
@@ -62,7 +59,12 @@ fun HomeView(
         } else {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 12.dp,
+                    bottom = 120.dp  // Extra padding for bottom navigation bar
+                ),
                 modifier = Modifier.fillMaxSize()
             ) {
                 item {
@@ -111,8 +113,6 @@ fun HomeView(
         }
     }
 }
-
-
 
 @Composable
 private fun InputDataCard(
@@ -214,12 +214,32 @@ private fun InputRowField(
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, color = Color(0xFF637083), fontSize = 13.sp)
             TextField(
-                value = value,
-                onValueChange = onValueChange,
+                value = if (value == "0" || value == "0.0") "" else value,
+                onValueChange = { newValue ->
+                    // Only allow digits and decimal point
+                    if (newValue.isEmpty()) {
+                        onValueChange("0")
+                    } else if (newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                        onValueChange(newValue)
+                    }
+                },
+                placeholder = {
+                    Text(
+                        text = "0",
+                        color = Color(0xFF9AA6B2),
+                        fontSize = 16.sp
+                    )
+                },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
             )
-            // Only show the message, not the score text
             if (message.isNotEmpty()) {
                 Text(
                     text = message,
@@ -230,8 +250,6 @@ private fun InputRowField(
         }
     }
 }
-
-
 
 @Composable
 private fun HeaderCard(
@@ -566,9 +584,6 @@ private fun ProgressBar(current: Int, max: Int, barColor: Color, modifier: Modif
     }
 }
 
-
-
-
 @Composable
 fun WeeklySummarySection(
     sleepAvg: Float? = null,
@@ -580,60 +595,56 @@ fun WeeklySummarySection(
     caloriesAvg: Int? = null,
     caloriesScore: Int? = null
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .background(Color.White, RoundedCornerShape(18.dp))
+    Card(
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = "Weekly Average Progress",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF1E2A3A)
             )
-            // Removed the Spacer and the "Last 7 days" text here
+            Spacer(Modifier.height(16.dp))
+            WeeklySummaryCard(
+                icon = Icons.Outlined.Hotel,
+                title = "Sleep",
+                avgLabel = "hours",
+                avg = sleepAvg ?: 0f,
+                score = sleepScore ?: 0,
+                bg = Color(0xFFF8F5FF)
+            )
+            Spacer(Modifier.height(12.dp))
+            WeeklySummaryCard(
+                icon = Icons.Outlined.WaterDrop,
+                title = "Water",
+                avgLabel = "glasses",
+                avg = waterAvg?.toFloat() ?: 0f,
+                score = waterScore ?: 0,
+                bg = Color(0xFFF0F8FF)
+            )
+            Spacer(Modifier.height(12.dp))
+            WeeklySummaryCard(
+                icon = Icons.Outlined.DirectionsRun,
+                title = "Steps",
+                avgLabel = "steps",
+                avg = stepsAvg?.toFloat() ?: 0f,
+                score = stepsScore ?: 0,
+                bg = Color(0xFFFFF5F0)
+            )
+            Spacer(Modifier.height(12.dp))
+            WeeklySummaryCard(
+                icon = Icons.Outlined.FavoriteBorder,
+                title = "Calories",
+                avgLabel = "kcal",
+                avg = caloriesAvg?.toFloat() ?: 0f,
+                score = caloriesScore ?: 0,
+                bg = Color(0xFFFFF0F3)
+            )
         }
-        Spacer(Modifier.height(16.dp))
-        WeeklySummaryCard(
-            icon = Icons.Outlined.Hotel,
-            title = "Sleep",
-            avgLabel = "hours",
-            avg = sleepAvg ?: 0f,
-            score = sleepScore ?: 0,
-            bg = Color(0xFFF8F5FF)
-        )
-        Spacer(Modifier.height(12.dp))
-        WeeklySummaryCard(
-            icon = Icons.Outlined.WaterDrop,
-            title = "Water",
-            avgLabel = "glasses",
-            avg = waterAvg?.toFloat() ?: 0f,
-            score = waterScore ?: 0,
-            bg = Color(0xFFF0F8FF)
-        )
-        Spacer(Modifier.height(12.dp))
-        WeeklySummaryCard(
-            icon = Icons.Outlined.DirectionsRun,
-            title = "Steps",
-            avgLabel = "steps",
-            avg = stepsAvg?.toFloat() ?: 0f,
-            score = stepsScore ?: 0,
-            bg = Color(0xFFFFF5F0)
-        )
-        Spacer(Modifier.height(12.dp))
-        WeeklySummaryCard(
-            icon = Icons.Outlined.FavoriteBorder,
-            title = "Calories",
-            avgLabel = "kcal",
-            avg = caloriesAvg?.toFloat() ?: 0f,
-            score = caloriesScore ?: 0,
-            bg = Color(0xFFFFF0F3)
-        )
     }
 }
 
@@ -650,8 +661,7 @@ private fun WeeklySummaryCard(
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = bg),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -712,10 +722,6 @@ private fun WeeklySummaryCard(
         }
     }
 }
-
-
-
-
 
 @Composable
 @Preview

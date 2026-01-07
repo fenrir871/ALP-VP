@@ -1,4 +1,4 @@
-package com.example.alp_vp.ui.view
+package com.example.alp_vp.ui.view.Profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,7 +31,7 @@ fun ProfileView(
 ) {
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
-    val user = remember { userRepository.getUser() }
+    val user = remember { userRepository.getCurrentUser() }
 
     val blueStart = Color(0xFF2A7DE1)
     val blueEnd = Color(0xFF3BB0FF)

@@ -1,5 +1,6 @@
 package com.example.alp_vp.ui.view.LoginRegister
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,55 +18,38 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.alp_vp.data.local.TokenManager
-import com.example.alp_vp.ui.viewmodel.AuthViewModel
+import com.example.alp_vp.data.repository.UserRepository
+import kotlinx.coroutines.launch
 
 @Composable
-fun Login(
-    tokenManager: TokenManager,
-    onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit
+fun LoginScreen(
+    onLoginSuccess: () -> Unit = {},
+    onNavigateToRegister: () -> Unit = {}
 ) {
-    val viewModel: AuthViewModel = viewModel(
-        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                return AuthViewModel(tokenManager) as T
-            }
-        }
-    )
+    val context = LocalContext.current
+    val userRepository = remember { UserRepository(context) }
+    val scope = rememberCoroutineScope()
 
     val blueStart = Color(0xFF2A7DE1)
     val blueEnd = Color(0xFF3BB0FF)
 
-    val email by viewModel.loginEmail.collectAsState()
-    val password by viewModel.loginPassword.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val loginSuccess by viewModel.loginSuccess.collectAsState()
-
-    // Navigate on success
-    LaunchedEffect(loginSuccess) {
-        if (loginSuccess) {
-            onLoginSuccess()
-        }
-    }
-
-    var passwordVisible by remember { mutableStateOf(false) }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFF5F7FA)) {
         Box(Modifier.fillMaxSize()) {
-            // Top banner with rounded bottom corners
+            // Top banner with rounded bottom corners (shortened)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.40f)
+                    .fillMaxHeight(0.40f) // was 0.55f
                     .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 45.dp))
                     .background(Brush.verticalGradient(listOf(blueStart, blueEnd)))
             ) {
@@ -127,35 +111,17 @@ fun Login(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .align(Alignment.BottomCenter)
-                    .offset(y = (-140).dp),
+                    .offset(y = (-140).dp), // was -160.dp to match shorter banner
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 shape = RoundedCornerShape(24.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
             ) {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 20.dp)) {
-
-                    // Error message
-                    errorMessage?.let {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE))
-                        ) {
-                            Text(
-                                text = it,
-                                modifier = Modifier.padding(12.dp),
-                                color = Color(0xFFC62828),
-                                fontSize = 13.sp
-                            )
-                        }
-                    }
-
                     Text("Email", color = Color(0xFF6C7A92), fontSize = 12.sp, fontWeight = FontWeight.Medium)
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = email,
-                        onValueChange = { viewModel.updateLoginEmail(it) },
+                        onValueChange = { email = it },
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 56.dp),
@@ -164,7 +130,6 @@ fun Login(
                         },
                         placeholder = { Text("Enter your email", color = Color(0xFF9AA7B8), fontSize = 14.sp) },
                         shape = RoundedCornerShape(16.dp),
-                        enabled = !isLoading,
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = Color(0xFFE8EDF2),
                             focusedBorderColor = blueStart,
@@ -180,7 +145,7 @@ fun Login(
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = password,
-                        onValueChange = { viewModel.updateLoginPassword(it) },
+                        onValueChange = { password = it },
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 56.dp),
@@ -188,18 +153,10 @@ fun Login(
                             Icon(Icons.Outlined.Lock, contentDescription = null, tint = Color(0xFF9AA7B8))
                         },
                         trailingIcon = {
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(
-                                    Icons.Outlined.Visibility,
-                                    contentDescription = null,
-                                    tint = Color(0xFF9AA7B8)
-                                )
-                            }
+                            Icon(Icons.Outlined.Visibility, contentDescription = null, tint = Color(0xFF9AA7B8))
                         },
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         placeholder = { Text("Enter your password", color = Color(0xFF9AA7B8), fontSize = 14.sp) },
                         shape = RoundedCornerShape(16.dp),
-                        enabled = !isLoading,
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = Color(0xFFE8EDF2),
                             focusedBorderColor = blueStart,
@@ -215,53 +172,69 @@ fun Login(
                     }
 
                     Spacer(Modifier.height(12.dp))
-
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(
-                                if (isLoading)
-                                    Brush.verticalGradient(listOf(Color.Gray, Color.Gray))
-                                else
-                                    Brush.horizontalGradient(listOf(blueStart, blueEnd))
-                            )
-                            .clickable(enabled = !isLoading) { viewModel.login() },
+                            .background(Brush.horizontalGradient(listOf(blueStart, blueEnd)))
+                            .clickable(enabled = !isLoading) {
+                                when {
+                                    email.isBlank() -> {
+                                        Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
+                                    }
+                                    password.isBlank() -> {
+                                        Toast.makeText(context, "Please enter your password", Toast.LENGTH_SHORT).show()
+                                    }
+                                    else -> {
+                                        isLoading = true
+                                        scope.launch {
+                                            val result = userRepository.loginUser(email, password)
+                                            isLoading = false
+                                            result.onSuccess {
+                                                Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
+                                                onLoginSuccess()
+                                            }.onFailure { error ->
+                                                Toast.makeText(context, error.message ?: "Login failed", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    }
+                                }
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(
                                 color = Color.White,
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
                             )
                         } else {
-                            Text(
-                                "Sign In",
-                                color = Color.White,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp
-                            )
+                            Text("Sign In", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                         }
                     }
 
                     Spacer(Modifier.height(16.dp))
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            "Don't have an account? ",
-                            color = Color(0xFF6C7A92),
-                            fontSize = 13.sp
-                        )
+                        HorizontalDivider(Modifier.weight(1f), color = Color(0xFFE8EDF2))
+                        Text("  or  ", color = Color(0xFF9AA7B8), fontSize = 12.sp)
+                        HorizontalDivider(Modifier.weight(1f), color = Color(0xFFE8EDF2))
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("Don't have an account? ", color = Color(0xFF6C7A92), fontSize = 13.sp)
                         Text(
                             "Sign Up",
                             color = blueStart,
-                            fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
+                            fontSize = 13.sp,
                             modifier = Modifier.clickable { onNavigateToRegister() }
                         )
                     }
@@ -269,4 +242,10 @@ fun Login(
             }
         }
     }
+}
+
+@Composable
+@Preview(showBackground = true)
+fun LoginScreenPreview() {
+    LoginScreen()
 }

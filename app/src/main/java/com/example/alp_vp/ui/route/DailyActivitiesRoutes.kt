@@ -22,7 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.alp_vp.data.container.DailyActivityContainer
-import com.example.alp_vp.ui.view.HomeView
+import com.example.alp_vp.ui.view.Home.HomeView
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
 
 enum class DailyScreens(val title: String, val icon: ImageVector? = null) {

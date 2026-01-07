@@ -37,11 +37,12 @@ import com.example.alp_vp.data.container.DailyActivityContainer
 import com.example.alp_vp.data.local.TokenManager
 import com.example.alp_vp.data.repository.UserRepository
 import com.example.alp_vp.ui.view.Friend.Friend
-import com.example.alp_vp.ui.view.HomeView
+import com.example.alp_vp.ui.view.Home.HomeView
 import com.example.alp_vp.ui.view.LoginRegister.Register
-import com.example.alp_vp.ui.view.ProfileView
+import com.example.alp_vp.ui.view.Profile.ProfileView
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
-import com.example.alp_vp.ui.view.LoginRegister.Login
+import com.example.alp_vp.ui.view.LoginRegister.LoginScreen
+
 enum class AppScreens(
     val title: String,
     val icon: ImageVector? = null,
@@ -150,7 +151,6 @@ fun RowScope.BottomNavItem(
 fun AppNavigation() {
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
-    val tokenManager = remember { TokenManager(context) }
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -192,8 +192,7 @@ fun AppNavigation() {
             startDestination = startDestination
         ) {
             composable(AppScreens.LOGIN.title) {
-                Login(
-                    tokenManager = tokenManager,
+                LoginScreen(
                     onLoginSuccess = {
                         navController.navigate(AppScreens.HOME.title) {
                             popUpTo(AppScreens.LOGIN.title) { inclusive = true }
@@ -207,7 +206,6 @@ fun AppNavigation() {
 
             composable(AppScreens.REGISTER.title) {
                 Register(
-                    tokenManager = tokenManager,
                     onRegisterSuccess = {
                         navController.navigate(AppScreens.HOME.title) {
                             popUpTo(AppScreens.LOGIN.title) { inclusive = true }
@@ -258,4 +256,3 @@ fun AppNavigation() {
         }
     }
 }
-

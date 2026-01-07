@@ -1,6 +1,7 @@
 package com.example.alp_vp.ui.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.alp_vp.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,9 +15,9 @@ data class HomeUiState(
     val error: String? = null
 )
 
-class HomeViewModel(
-    private val userRepository: UserRepository
-) : ViewModel() {
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val userRepository = UserRepository(application.applicationContext)
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -29,16 +30,15 @@ class HomeViewModel(
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true)
-
-                var user = userRepository.getCurrentUser()
-
+                val user = userRepository.getCurrentUser()
                 _uiState.value = _uiState.value.copy(
                     username = user?.username ?: "User",
-                    isLoading = false
+                    isLoading = false,
+                    error = null
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    error = e.message,
+                    error = e.message ?: "Unknown error",
                     isLoading = false
                 )
             }

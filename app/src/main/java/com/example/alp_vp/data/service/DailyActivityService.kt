@@ -1,4 +1,4 @@
-package com.example.alp_vp.data.Service
+package com.example.alp_vp.data.service
 
 import com.example.alp_vp.data.dto.CreateTodayActivityRequest
 import com.example.alp_vp.data.dto.TodayActivityResponse
