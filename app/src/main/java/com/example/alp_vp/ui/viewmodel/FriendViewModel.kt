@@ -1,24 +1,24 @@
 package com.example.alp_vp.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.alp_vp.data.model.LeaderboardItem
-import com.example.alp_vp.data.model.PendingFriendRequest
+import com.example.alp_vp.ui.model.Friend
 import com.example.alp_vp.data.repository.FriendRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class FriendViewModel : ViewModel() {
+class FriendViewModel(context: Context) : ViewModel() {
 
-    private val repository = FriendRepository()
+    private val repository = FriendRepository(context)
 
-    private val _leaderboard = MutableStateFlow<List<LeaderboardItem>>(emptyList())
-    val leaderboard: StateFlow<List<LeaderboardItem>> = _leaderboard.asStateFlow()
+    private val _leaderboard = MutableStateFlow<List<Friend>>(emptyList())
+    val leaderboard: StateFlow<List<Friend>> = _leaderboard.asStateFlow()
 
-    private val _pendingRequests = MutableStateFlow<List<PendingFriendRequest>>(emptyList())
-    val pendingRequests: StateFlow<List<PendingFriendRequest>> = _pendingRequests.asStateFlow()
+    private val _allFriends = MutableStateFlow<List<Friend>>(emptyList())
+    val allFriends: StateFlow<List<Friend>> = _allFriends.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -29,35 +29,69 @@ class FriendViewModel : ViewModel() {
     private val _successMessage = MutableStateFlow<String?>(null)
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
 
-    fun loadLeaderboard() {
+    fun loadAllFriends() {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = repository.getFriendLeaderboard()
-            result.onSuccess { _leaderboard.value = it }
-                .onFailure { _errorMessage.value = it.message }
+            try {
+                val result = repository.getAllFriends()
+                _allFriends.value = result
+            } catch (e: Exception) {
+                _errorMessage.value = e.message
+            }
             _isLoading.value = false
         }
     }
 
-    fun loadPendingRequests() {
+    fun loadLeaderboard(userName: String, username: String, userScore: Int) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = repository.getPendingRequests()
-            result.onSuccess { _pendingRequests.value = it }
-                .onFailure { _errorMessage.value = it.message }
+            try {
+                val result = repository.getLeaderboard(userName, username, userScore)
+                _leaderboard.value = result
+            } catch (e: Exception) {
+                _errorMessage.value = e.message
+            }
             _isLoading.value = false
         }
     }
 
-    fun acceptFriendRequest(requestId: Int) {
+    fun searchFriends(query: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = repository.acceptFriendRequest(requestId)
-            result.onSuccess {
-                _successMessage.value = "Friend request accepted!"
-                loadPendingRequests()
-                loadLeaderboard()
-            }.onFailure { _errorMessage.value = it.message }
+            try {
+                val result = repository.searchFriends(query)
+                _allFriends.value = result
+            } catch (e: Exception) {
+                _errorMessage.value = e.message
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun addFriend(friend: Friend) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                repository.addFriend(friend)
+                _successMessage.value = "Friend added successfully!"
+                loadAllFriends() // Reload the list
+            } catch (e: Exception) {
+                _errorMessage.value = e.message
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun removeFriend(friendId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                repository.removeFriend(friendId)
+                _successMessage.value = "Friend removed"
+                loadAllFriends() // Reload the list
+            } catch (e: Exception) {
+                _errorMessage.value = e.message
+            }
             _isLoading.value = false
         }
     }
