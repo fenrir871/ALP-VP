@@ -34,6 +34,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.alp_vp.data.container.DailyActivityContainer
+import com.example.alp_vp.data.local.TokenManager
 import com.example.alp_vp.data.repository.UserRepository
 import com.example.alp_vp.ui.view.Friend.Friend
 import com.example.alp_vp.ui.view.Home.HomeView
@@ -258,4 +259,3 @@ fun AppNavigation() {
         }
     }
 }
-

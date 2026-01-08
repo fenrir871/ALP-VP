@@ -2,87 +2,159 @@ package com.example.alp_vp.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.alp_vp.data.api.RetrofitInstance
+import com.example.alp_vp.data.dto.*
 import com.example.alp_vp.ui.model.Friend
+import com.example.alp_vp.ui.model.UserSearchModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class FriendRepository(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("friend_prefs", Context.MODE_PRIVATE)
 
-    companion object {
-        private const val KEY_FRIEND_COUNT = "friend_count"
-        private const val KEY_FRIEND_PREFIX = "friend_"
-    }
+    private val friendApi = RetrofitInstance.friendApi
+    private val userApi = RetrofitInstance.userApi
 
     /**
-     * Get all friends from local storage
-     * In a real app, this would fetch from a remote API
+     * Search for users to add as friends
      */
-    fun getAllFriends(): List<Friend> {
-        // For now, return mock data
-        // In production, this would query a database or API
-        return listOf(
-            Friend(0, 1, "John Doe", "@johndoe", 95, false),
-            Friend(0, 2, "Jane Smith", "@janesmith", 88, false),
-            Friend(0, 3, "Mike Johnson", "@mikej", 92, false),
-            Friend(0, 4, "Sarah Williams", "@sarahw", 87, false),
-            Friend(0, 5, "David Brown", "@davidb", 90, false),
-            Friend(0, 6, "Emily Davis", "@emilyd", 85, false),
-            Friend(0, 7, "Chris Wilson", "@chrisw", 89, false)
-        )
-    }
+    suspend fun searchUsers(query: String): Result<List<UserSearchModel>> = withContext(Dispatchers.IO) {
+        try {
+            if (query.length < 2) {
+                return@withContext Result.failure(Exception("Search query must be at least 2 characters"))
+            }
 
-    /**
-     * Add a friend to local storage
-     */
-    fun addFriend(friend: Friend) {
-        val count = prefs.getInt(KEY_FRIEND_COUNT, 0)
-        prefs.edit().apply {
-            putString("${KEY_FRIEND_PREFIX}${count}_name", friend.name)
-            putString("${KEY_FRIEND_PREFIX}${count}_username", friend.username)
-            putInt("${KEY_FRIEND_PREFIX}${count}_score", friend.highestScore)
-            putInt(KEY_FRIEND_COUNT, count + 1)
-            apply()
+            val response = userApi.searchUsers(query)
+            when {
+                response.isSuccessful -> {
+                    val body = response.body()
+                    when {
+                        body?.success == true && body.data.isNotEmpty() -> {
+                            val users = body.data.map { item ->
+                                UserSearchModel(
+                                    id = item.id,
+                                    name = item.name,
+                                    username = "@${item.username}",
+                                    highestScore = item.highest_score,
+                                    friendshipStatus = item.friendship_status
+                                )
+                            }
+                            Result.success(users)
+                        }
+                        body?.success == true && body.data.isEmpty() -> {
+                            Result.success(emptyList())
+                        }
+                        else -> Result.failure(Exception(body?.message ?: "Failed to search users"))
+                    }
+                }
+                else -> Result.failure(Exception("API error: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception("Network error: ${e.message}"))
         }
     }
 
     /**
-     * Remove a friend from local storage
+     * Get friend leaderboard from API
      */
-    fun removeFriend(friendId: Int) {
-        // Implementation for removing a friend
-        // In production, this would call an API
-    }
-
-    /**
-     * Search friends by name or username
-     */
-    fun searchFriends(query: String): List<Friend> {
-        return getAllFriends().filter {
-            it.name.contains(query, ignoreCase = true) ||
-            it.username.contains(query, ignoreCase = true)
+    suspend fun getFriendLeaderboard(): Result<List<Friend>> = withContext(Dispatchers.IO) {
+        try {
+            val response = friendApi.getFriendLeaderboard()
+            when {
+                response.isSuccessful -> {
+                    val body = response.body()
+                    when {
+                        body?.status == "success" && body.data.isNotEmpty() -> {
+                            val friends = body.data.map { item ->
+                                Friend(
+                                    rank = item.rank,
+                                    id = item.friend_id,
+                                    name = item.name,
+                                    username = "@${item.username}",
+                                    highestScore = item.overall_score,
+                                    isCurrentUser = false
+                                )
+                            }
+                            Result.success(friends)
+                        }
+                        body?.status == "success" && body.data.isEmpty() -> {
+                            Result.success(emptyList())
+                        }
+                        else -> Result.failure(Exception(body?.message ?: "Failed to load leaderboard"))
+                    }
+                }
+                else -> Result.failure(Exception("API error: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception("Network error: ${e.message}"))
         }
     }
 
     /**
-     * Get leaderboard with current user included
+     * Add a friend (send friend request)
      */
-    fun getLeaderboard(currentUserName: String, currentUserUsername: String, currentUserScore: Int): List<Friend> {
-        val friends = getAllFriends().toMutableList()
+    suspend fun addFriend(friendId: Int): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val request = RequestAddFriend(friend_id = friendId)
+            val response = friendApi.addFriend(request)
 
-        // Add current user to leaderboard
-        friends.add(
-            Friend(
-                rank = 0,
-                id = 999,
-                name = currentUserName,
-                username = currentUserUsername,
-                highestScore = currentUserScore,
-                isCurrentUser = true
-            )
-        )
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body?.status == "success") {
+                    Result.success(body.message)
+                } else {
+                    Result.failure(Exception(body?.message ?: "Failed to add friend"))
+                }
+            } else {
+                Result.failure(Exception("Failed to add friend"))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception("Network error: ${e.message}"))
+        }
+    }
 
-        // Sort by score descending
-        return friends.sortedByDescending { it.highestScore }
+    /**
+     * Get pending friend requests
+     */
+    suspend fun getPendingRequests(): Result<List<PendingFriend>> = withContext(Dispatchers.IO) {
+        try {
+            val response = friendApi.getPendingRequests()
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body?.status == "success") {
+                    Result.success(body.data)
+                } else {
+                    Result.failure(Exception(body?.message ?: "Failed to load pending requests"))
+                }
+            } else {
+                Result.failure(Exception("API error: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception("Network error: ${e.message}"))
+        }
+    }
+
+    /**
+     * Accept a friend request
+     */
+    suspend fun acceptFriendRequest(requestId: Int): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val request = RequestAcceptFriend(friend_request_id = requestId)
+            val response = friendApi.acceptFriendRequest(request)
+
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body?.status == "success") {
+                    Result.success(body.message)
+                } else {
+                    Result.failure(Exception(body?.message ?: "Failed to accept request"))
+                }
+            } else {
+                Result.failure(Exception("Failed to accept request"))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception("Network error: ${e.message}"))
+        }
     }
 }
-
