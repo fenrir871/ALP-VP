@@ -1,5 +1,6 @@
 package com.example.alp_vp.data.service
 
+import com.example.alp_vp.data.dto.ResponseUserSearch
 import com.example.alp_vp.ui.model.UserModel
 import retrofit2.Response
 import retrofit2.http.*
@@ -20,4 +21,7 @@ interface UserAPI {
 
     @GET("api/users/email/{email}")
     suspend fun getUserByEmail(@Path("email") email: String): Response<UserModel>
+
+    @GET("api/users/search")
+    suspend fun searchUsers(@Query("query") query: String): Response<ResponseUserSearch>
 }

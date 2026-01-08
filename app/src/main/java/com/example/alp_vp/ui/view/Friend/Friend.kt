@@ -57,14 +57,17 @@ fun Friend() {
                 val allFriends = leaderboard.toMutableList()
 
                 currentUser?.let { user ->
-                    allFriends.add(Friend(
-                        rank = 0,
-                        id = 999,
-                        name = user.fullName,
-                        username = "@${user.username}",
-                        highestScore = user.highestScore,
-                        isCurrentUser = true
-                    ))
+                    // Only add current user if they have valid data
+                    if (user.id != null && user.highestScore != null) {
+                        allFriends.add(Friend(
+                            rank = 0,
+                            id = user.id,
+                            name = user.fullName,
+                            username = "@${user.username}",
+                            highestScore = user.highestScore,
+                            isCurrentUser = true
+                        ))
+                    }
                 }
 
                 friends = allFriends
@@ -361,7 +364,10 @@ fun Friend() {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(friends) { friend ->
-                    FriendCard(friend = friend, blueColor = blueStart)
+                    FriendCard(
+                        friend = friend,
+                        blueColor = blueStart
+                    )
                 }
             }
         }

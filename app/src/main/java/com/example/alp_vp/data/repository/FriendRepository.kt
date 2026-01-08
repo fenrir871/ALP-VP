@@ -30,7 +30,7 @@ class FriendRepository(context: Context) {
                 response.isSuccessful -> {
                     val body = response.body()
                     when {
-                        body?.success == true && body.data != null -> {
+                        body?.success == true && body.data.isNotEmpty() -> {
                             val users = body.data.map { item ->
                                 UserSearchModel(
                                     id = item.id,
@@ -42,7 +42,10 @@ class FriendRepository(context: Context) {
                             }
                             Result.success(users)
                         }
-                        else -> Result.failure(Exception("Failed to search users"))
+                        body?.success == true && body.data.isEmpty() -> {
+                            Result.success(emptyList())
+                        }
+                        else -> Result.failure(Exception(body?.message ?: "Failed to search users"))
                     }
                 }
                 else -> Result.failure(Exception("API error: ${response.code()}"))
@@ -62,7 +65,7 @@ class FriendRepository(context: Context) {
                 response.isSuccessful -> {
                     val body = response.body()
                     when {
-                        body?.status == "success" && body.data != null -> {
+                        body?.status == "success" && body.data.isNotEmpty() -> {
                             val friends = body.data.map { item ->
                                 Friend(
                                     rank = item.rank,
@@ -75,7 +78,10 @@ class FriendRepository(context: Context) {
                             }
                             Result.success(friends)
                         }
-                        else -> Result.failure(Exception("Failed to load leaderboard"))
+                        body?.status == "success" && body.data.isEmpty() -> {
+                            Result.success(emptyList())
+                        }
+                        else -> Result.failure(Exception(body?.message ?: "Failed to load leaderboard"))
                     }
                 }
                 else -> Result.failure(Exception("API error: ${response.code()}"))
@@ -116,10 +122,10 @@ class FriendRepository(context: Context) {
             val response = friendApi.getPendingRequests()
             if (response.isSuccessful) {
                 val body = response.body()
-                if (body?.status == "success" && body.data != null) {
+                if (body?.status == "success") {
                     Result.success(body.data)
                 } else {
-                    Result.failure(Exception("Failed to load pending requests"))
+                    Result.failure(Exception(body?.message ?: "Failed to load pending requests"))
                 }
             } else {
                 Result.failure(Exception("API error: ${response.code()}"))

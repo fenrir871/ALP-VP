@@ -4,6 +4,6 @@ data class UserSearchModel(
     val id: Int,
     val name: String,
     val username: String,
-    val highestScore: Int,
-    val friendshipStatus: String
+    val highestScore: Int = 0,
+    val friendshipStatus: String = "none"
 )
