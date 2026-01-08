@@ -12,6 +12,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        com.example.alp_vp.data.api.RetrofitInstance.initialize(applicationContext)
+
         setContent {
             ALPVPTheme {
                 AppNavigation()

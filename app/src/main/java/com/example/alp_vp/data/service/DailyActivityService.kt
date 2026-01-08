@@ -1,31 +1,31 @@
 package com.example.alp_vp.data.service
 
-import com.example.alp_vp.data.dto.CreateTodayActivityRequest
-import com.example.alp_vp.data.dto.TodayActivityResponse
-import com.example.alp_vp.data.dto.UpdateTodayActivityRequest
+import com.example.alp_vp.data.dto.CreateDailyActivityRequest
+import com.example.alp_vp.data.dto.DailyActivityResponse
+import com.example.alp_vp.data.dto.UpdateDailyActivityRequest
 import retrofit2.Response
 import retrofit2.http.*
 
 interface DailyActivityService{
 
-    @GET("today-activities")
-    suspend fun getAllTodayActivities(): Response<List<TodayActivityResponse>>
+    @GET("daily-activities")
+    suspend fun getAllDailyActivities(): Response<List<DailyActivityResponse>>
 
-    @GET("today-activities/{id}")
-    suspend fun getTodayActivityById(@Path("id") id: Int): Response<TodayActivityResponse>
+    @GET("daily-activities/{id}")
+    suspend fun getDailyActivityById(@Path("id") id: Int): Response<DailyActivityResponse>
 
-    @GET("today-activities/user/{userId}")
-    suspend fun getTodayActivitiesByUserId(@Path("userId") userId: Int): Response<List<TodayActivityResponse>>
+    @GET("daily-activities/user/{userId}")
+    suspend fun getDailyActivitiesByUserId(@Path("userId") userId: Int): Response<List<DailyActivityResponse>>
 
-    @POST("today-activities")
-    suspend fun createTodayActivity(@Body request: CreateTodayActivityRequest): Response<TodayActivityResponse>
+    @POST("daily-activities")
+    suspend fun createDailyActivity(@Body request: CreateDailyActivityRequest): Response<DailyActivityResponse>
 
-    @PUT("today-activities/{id}")
-    suspend fun updateTodayActivity(
+    @PUT("daily-activities/{id}")
+    suspend fun updateDailyActivity(
         @Path("id") id: Int,
-        @Body request: UpdateTodayActivityRequest
-    ): Response<TodayActivityResponse>
+        @Body request: UpdateDailyActivityRequest
+    ): Response<DailyActivityResponse>
 
-    @DELETE("today-activities/{id}")
-    suspend fun deleteTodayActivity(@Path("id") id: Int): Response<Unit>
+    @DELETE("daily-activities/{id}")
+    suspend fun deleteDailyActivity(@Path("id") id: Int): Response<Unit>
 }

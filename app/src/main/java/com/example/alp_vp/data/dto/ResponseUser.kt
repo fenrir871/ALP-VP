@@ -6,6 +6,7 @@ data class ResponseUser(
     val username: String,
     val email: String,
     val phone: String,
-    val createdAt: String
+    val createdAt: String,
+    val highest_score: Int?,
+    val friends_count: Int?
 )
-

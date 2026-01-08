@@ -1,10 +1,10 @@
+// Kotlin
 package com.example.alp_vp.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.alp_vp.data.service.LoginRequest
 import com.example.alp_vp.data.api.RetrofitInstance
-import com.example.alp_vp.data.dto.RequestLogin
-import com.example.alp_vp.data.dto.RequestRegister
 import com.example.alp_vp.ui.model.UserModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,41 +21,32 @@ class UserRepository(context: Context) {
         private const val KEY_USERNAME = "username"
         private const val KEY_EMAIL = "email"
         private const val KEY_PHONE = "phone"
-        private const val KEY_TOKEN = "token"
+        private const val KEY_PASSWORD = "password"
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
+        private const val KEY_HIGHEST_SCORE = "highest_score"
     }
 
-    // Register user
-    suspend fun registerUser(
-        name: String,
-        username: String,
-        phone: String,
-        email: String,
-        password: String
-    ): Result<String> = withContext(Dispatchers.IO) {
-        // Local validation
-        if (name.isBlank() || username.isBlank() || email.isBlank() || password.isBlank()) {
+    // Validate and register user
+    suspend fun registerUser(user: UserModel): Result<String> = withContext(Dispatchers.IO) {
+        // Local validation: prevent empty payloads
+        if (user.fullName.isNullOrBlank() ||
+            user.username.isNullOrBlank() ||
+            user.email.isNullOrBlank() ||
+            user.password.isNullOrBlank()
+        ) {
             return@withContext Result.failure(Exception("Please fill in all required fields."))
         }
 
         try {
-            val request = RequestRegister(
-                name = name,
-                username = username,
-                phone = phone,
-                email = email,
-                password = password
-            )
-
-            val response = userApi.register(request)
+            val response = userApi.register(user)
             if (response.isSuccessful) {
                 val body = response.body()
-                if (body?.data?.token != null) {
-                    // Save user data locally
-                    saveUserLocally(name, username, email, phone, body.data.token)
+                if (body?.success == true && body.data != null) {
+                    // Save the registered user data locally
+                    saveUserLocally(body.data)
                     Result.success("Registration successful.")
                 } else {
-                    Result.failure(Exception("Registration failed - no token received."))
+                    Result.failure(Exception(body?.message ?: "Registration failed."))
                 }
             } else {
                 val msg = parseError(response.errorBody()?.string())
@@ -66,30 +57,21 @@ class UserRepository(context: Context) {
         }
     }
 
-    // Login user
-    suspend fun loginUser(email: String, password: String): Result<String> = withContext(Dispatchers.IO) {
+    // Validate and login
+    suspend fun loginUser(email: String, password: String): Result<UserModel> = withContext(Dispatchers.IO) {
         if (email.isBlank() || password.isBlank()) {
             return@withContext Result.failure(Exception("Email and password are required."))
         }
 
         try {
-            val request = RequestLogin(email = email, password = password)
-            val response = userApi.login(request)
-
+            val response = userApi.login(LoginRequest(email, password))
             if (response.isSuccessful) {
                 val body = response.body()
-                if (body?.data?.token != null) {
-                    // Use the data from the login response directly
-                    saveUserLocally(
-                        body.data.name,
-                        body.data.username,
-                        body.data.email,
-                        body.data.phone,
-                        body.data.token
-                    )
-                    Result.success("Login successful.")
+                if (body?.success == true && body.data != null) {
+                    saveUserLocally(body.data)
+                    Result.success(body.data)
                 } else {
-                    Result.failure(Exception("Invalid credentials."))
+                    Result.failure(Exception(body?.message ?: "Invalid credentials."))
                 }
             } else {
                 val msg = parseError(response.errorBody()?.string())
@@ -100,7 +82,7 @@ class UserRepository(context: Context) {
         }
     }
 
-    // Fetch user by email
+    // Fetch by email with clear errors
     suspend fun fetchUserByEmail(email: String): Result<UserModel> = withContext(Dispatchers.IO) {
         if (email.isBlank()) {
             return@withContext Result.failure(Exception("Email is required."))
@@ -111,14 +93,7 @@ class UserRepository(context: Context) {
             if (response.isSuccessful) {
                 val user = response.body()
                 if (user != null) {
-                    val userModel = UserModel(
-                        fullName = user.name,
-                        username = user.username,
-                        email = user.email,
-                        phone = user.phone,
-                        password = "" // Don't store password
-                    )
-                    Result.success(userModel)
+                    Result.success(user)
                 } else {
                     Result.failure(Exception("User not found."))
                 }
@@ -131,19 +106,13 @@ class UserRepository(context: Context) {
         }
     }
 
-    private fun saveUserLocally(
-        fullName: String,
-        username: String,
-        email: String,
-        phone: String,
-        token: String
-    ) {
+    private fun saveUserLocally(user: UserModel) {
         prefs.edit().apply {
-            putString(KEY_FULL_NAME, fullName)
-            putString(KEY_USERNAME, username)
-            putString(KEY_EMAIL, email)
-            putString(KEY_PHONE, phone)
-            putString(KEY_TOKEN, token)
+            putString(KEY_FULL_NAME, user.fullName)
+            putString(KEY_USERNAME, user.username)
+            putString(KEY_EMAIL, user.email)
+            putString(KEY_PHONE, user.phone)
+            putString(KEY_PASSWORD, user.password) // avoid storing raw passwords in production
             putBoolean(KEY_IS_LOGGED_IN, true)
             apply()
         }
@@ -163,20 +132,29 @@ class UserRepository(context: Context) {
             username = prefs.getString(KEY_USERNAME, "") ?: "",
             email = email,
             phone = prefs.getString(KEY_PHONE, "") ?: "",
-            password = "" // Don't return password
+            password = prefs.getString(KEY_PASSWORD, "") ?: ""
         )
     }
 
-    fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
-
     fun isLoggedIn(): Boolean = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
 
-    fun logout() {
-        prefs.edit().apply {
-            putBoolean(KEY_IS_LOGGED_IN, false)
-            remove(KEY_TOKEN)
-            apply()
+    fun updateUser(user: UserModel) {
+        saveUserLocally(user)
+    }
+
+    fun getHighestScore(): Int {
+        return prefs.getInt(KEY_HIGHEST_SCORE, 0)
+    }
+
+    fun updateHighestScore(newScore: Int) {
+        val currentHighest = getHighestScore()
+        if (newScore > currentHighest) {
+            prefs.edit().putInt(KEY_HIGHEST_SCORE, newScore).apply()
         }
+    }
+
+    fun logout() {
+        prefs.edit().clear().apply()
     }
 
     fun clearAll() {

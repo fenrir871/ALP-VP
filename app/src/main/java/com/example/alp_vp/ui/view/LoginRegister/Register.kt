@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alp_vp.ui.model.UserModel
 import com.example.alp_vp.data.repository.UserRepository
 import kotlinx.coroutines.launch
 
@@ -209,110 +210,61 @@ fun Register(
                             .clip(RoundedCornerShape(16.dp))
                             .background(Brush.horizontalGradient(listOf(blueStart, blueEnd)))
                             .clickable(enabled = !isLoading) {
-                                // Validation
+                                // Validation matching backend requirements
                                 when {
                                     fullName.isBlank() -> {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                "Please enter your full name",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            .show()
+                                        Toast.makeText(context, "Please enter your full name", Toast.LENGTH_SHORT).show()
                                     }
                                     username.isBlank() -> {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                "Please enter a username",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            .show()
+                                        Toast.makeText(context, "Please enter a username", Toast.LENGTH_SHORT).show()
+                                    }
+                                    username.length < 3 -> {
+                                        Toast.makeText(context, "Username must be at least 3 characters", Toast.LENGTH_SHORT).show()
+                                    }
+                                    username.length > 50 -> {
+                                        Toast.makeText(context, "Username must not exceed 50 characters", Toast.LENGTH_SHORT).show()
                                     }
                                     email.isBlank() -> {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                "Please enter your email",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            .show()
+                                        Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
                                     }
-                                    !android.util.Patterns.EMAIL_ADDRESS.matcher(email)
-                                        .matches() -> {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                "Please enter a valid email",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            .show()
+                                    !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                                        Toast.makeText(context, "Please enter a valid email", Toast.LENGTH_SHORT).show()
                                     }
                                     phone.isBlank() -> {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                "Please enter your phone number",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            .show()
+                                        Toast.makeText(context, "Please enter your phone number", Toast.LENGTH_SHORT).show()
+                                    }
+                                    phone.length < 10 -> {
+                                        Toast.makeText(context, "Phone number must be at least 10 digits", Toast.LENGTH_SHORT).show()
+                                    }
+                                    phone.length > 20 -> {
+                                        Toast.makeText(context, "Phone number must not exceed 20 characters", Toast.LENGTH_SHORT).show()
                                     }
                                     password.isBlank() -> {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                "Please enter a password",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            .show()
+                                        Toast.makeText(context, "Please enter a password", Toast.LENGTH_SHORT).show()
                                     }
-                                    password.length < 6 -> {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                "Password must be at least 6 characters",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            .show()
+                                    password.length < 8 -> {
+                                        Toast.makeText(context, "Password must be at least 8 characters", Toast.LENGTH_SHORT).show()
                                     }
                                     password != confirmPassword -> {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                "Passwords do not match",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            .show()
+                                        Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
                                     }
                                     else -> {
                                         isLoading = true
                                         scope.launch {
-                                            // ✅ FIXED: Use correct method signature
-                                            val result = userRepository.registerUser(
-                                                name = fullName,
+                                            val user = UserModel(
+                                                fullName = fullName,
                                                 username = username,
-                                                phone = phone,
                                                 email = email,
+                                                phone = phone,
                                                 password = password
                                             )
+                                            val result = userRepository.registerUser(user)
                                             isLoading = false
                                             result.onSuccess {
-                                                Toast
-                                                    .makeText(
-                                                        context,
-                                                        "Account created successfully!",
-                                                        Toast.LENGTH_SHORT
-                                                    )
-                                                    .show()
+                                                Toast.makeText(context, "Account created successfully!", Toast.LENGTH_SHORT).show()
                                                 onRegisterSuccess()
                                             }.onFailure { error ->
-                                                Toast
-                                                    .makeText(
-                                                        context,
-                                                        error.message ?: "Registration failed",
-                                                        Toast.LENGTH_SHORT
-                                                    )
-                                                    .show()
+                                                Toast.makeText(context, error.message ?: "Registration failed", Toast.LENGTH_SHORT).show()
                                             }
                                         }
                                     }
@@ -327,12 +279,7 @@ fun Register(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text(
-                                "Create Account",
-                                color = Color.White,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp
-                            )
+                            Text("Create Account", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                         }
                     }
 
@@ -351,11 +298,7 @@ fun Register(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text(
-                            "Already have an account? ",
-                            color = Color(0xFF6C7A92),
-                            fontSize = 13.sp
-                        )
+                        Text("Already have an account? ", color = Color(0xFF6C7A92), fontSize = 13.sp)
                         Text(
                             "Sign In",
                             color = blueStart,

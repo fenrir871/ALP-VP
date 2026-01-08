@@ -11,7 +11,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alp_vp.data.repository.UserRepository
+import com.example.alp_vp.data.repository.FriendRepository
 
 @Composable
 fun ProfileView(
@@ -31,7 +36,20 @@ fun ProfileView(
 ) {
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
-    val user = remember { userRepository.getCurrentUser() }
+    val friendRepository = remember { FriendRepository(context) }
+    var user by remember { mutableStateOf(userRepository.getCurrentUser()) }
+
+    // Get friends count dynamically - will recompose when friends change
+    var friendsCount by remember { mutableStateOf(friendRepository.getAllFriends().size) }
+
+    // Get highest score dynamically - will recompose when score changes
+    var highestScore by remember { mutableStateOf(userRepository.getHighestScore()) }
+
+    // Refresh data on composition
+    LaunchedEffect(Unit) {
+        friendsCount = friendRepository.getAllFriends().size
+        highestScore = userRepository.getHighestScore()
+    }
 
     val blueStart = Color(0xFF2A7DE1)
     val blueEnd = Color(0xFF3BB0FF)
@@ -97,7 +115,7 @@ fun ProfileView(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = user?.username ?: "Guest User",
+                    text = user?.fullName ?: "Guest User",
                     color = Color.White,
                     fontSize = 26.sp,
                     fontWeight = FontWeight.Bold
@@ -130,14 +148,14 @@ fun ProfileView(
                     .padding(vertical = 24.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatItem(value = "95", label = "Highest Score", color = blueStart)
+                StatItem(value = highestScore.toString(), label = "Highest Score", color = blueStart)
                 HorizontalDivider(
                     modifier = Modifier
                         .width(1.dp)
                         .height(50.dp),
                     color = Color(0xFFE8EDF2)
                 )
-                StatItem(value = "15", label = "Friends", color = Color(0xFFFF6B6B))
+                StatItem(value = friendsCount.toString(), label = "Friends", color = Color(0xFFFF6B6B))
             }
         }
 
@@ -169,8 +187,15 @@ fun ProfileView(
                     InfoItem(
                         icon = Icons.Default.Person,
                         label = "Full Name",
-                        value = user?.username ?: "Not set",
-                        iconTint = Color(0xFF4A90E2)
+                        value = user?.fullName ?: "Not set",
+                        iconTint = Color(0xFF4A90E2),
+                        onEdit = { newValue ->
+                            user?.let {
+                                val updatedUser = it.copy(fullName = newValue)
+                                userRepository.updateUser(updatedUser)
+                                user = updatedUser
+                            }
+                        }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 16.dp),
@@ -181,7 +206,14 @@ fun ProfileView(
                         icon = Icons.Default.AccountCircle,
                         label = "Username",
                         value = user?.username ?: "Not set",
-                        iconTint = Color(0xFF9C27B0)
+                        iconTint = Color(0xFF9C27B0),
+                        onEdit = { newValue ->
+                            user?.let {
+                                val updatedUser = it.copy(username = newValue)
+                                userRepository.updateUser(updatedUser)
+                                user = updatedUser
+                            }
+                        }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 16.dp),
@@ -192,7 +224,14 @@ fun ProfileView(
                         icon = Icons.Default.Phone,
                         label = "Phone",
                         value = user?.phone ?: "Not set",
-                        iconTint = Color(0xFFFF9800)
+                        iconTint = Color(0xFFFF9800),
+                        onEdit = { newValue ->
+                            user?.let {
+                                val updatedUser = it.copy(phone = newValue)
+                                userRepository.updateUser(updatedUser)
+                                user = updatedUser
+                            }
+                        }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 16.dp),
@@ -203,7 +242,14 @@ fun ProfileView(
                         icon = Icons.Default.Email,
                         label = "Email",
                         value = user?.email ?: "Not set",
-                        iconTint = Color(0xFF4CAF50)
+                        iconTint = Color(0xFF4CAF50),
+                        onEdit = { newValue ->
+                            user?.let {
+                                val updatedUser = it.copy(email = newValue)
+                                userRepository.updateUser(updatedUser)
+                                user = updatedUser
+                            }
+                        }
                     )
                 }
             }
@@ -259,17 +305,22 @@ fun StatItem(value: String, label: String, color: Color) {
             fontWeight = FontWeight.Medium,
             color = Color(0xFF6C7A92)
         )
-        Text(
-            text = "out of 100",
-            fontSize = 11.sp,
-            color = Color(0xFF9AA7B8)
-        )
     }
 }
 
 
 @Composable
-fun InfoItem(icon: ImageVector, label: String, value: String, iconTint: Color) {
+fun InfoItem(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    iconTint: Color,
+    onEdit: (String) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    var editedValue by remember { mutableStateOf(value) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -295,7 +346,11 @@ fun InfoItem(icon: ImageVector, label: String, value: String, iconTint: Color) {
                 color = Color(0xFF1A1D26)
             )
         }
-        IconButton(onClick = { /* Handle edit */ }) {
+        IconButton(onClick = {
+            editedValue = value
+            errorMessage = null
+            showDialog = true
+        }) {
             Icon(
                 imageVector = Icons.Default.Edit,
                 contentDescription = "Edit",
@@ -303,6 +358,115 @@ fun InfoItem(icon: ImageVector, label: String, value: String, iconTint: Color) {
                 modifier = Modifier.size(20.dp)
             )
         }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showDialog = false
+                errorMessage = null
+            },
+            title = {
+                Text(
+                    text = "Edit $label",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = editedValue,
+                        onValueChange = {
+                            editedValue = it
+                            errorMessage = null
+                        },
+                        label = { Text(label) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF2A7DE1),
+                            focusedLabelColor = Color(0xFF2A7DE1),
+                            errorBorderColor = Color.Red
+                        ),
+                        isError = errorMessage != null
+                    )
+                    if (errorMessage != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = errorMessage!!,
+                            color = Color.Red,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val validation = validateField(label, editedValue)
+                        if (validation.isValid) {
+                            onEdit(editedValue)
+                            showDialog = false
+                            errorMessage = null
+                        } else {
+                            errorMessage = validation.error
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2A7DE1)
+                    )
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDialog = false
+                    errorMessage = null
+                }) {
+                    Text("Cancel", color = Color.Gray)
+                }
+            }
+        )
+    }
+}
+
+data class ValidationResult(val isValid: Boolean, val error: String? = null)
+
+fun validateField(fieldName: String, value: String): ValidationResult {
+    return when (fieldName) {
+        "Full Name" -> {
+            when {
+                value.isBlank() -> ValidationResult(false, "Please enter your full name")
+                else -> ValidationResult(true)
+            }
+        }
+        "Username" -> {
+            when {
+                value.isBlank() -> ValidationResult(false, "Please enter a username")
+                value.length < 3 -> ValidationResult(false, "Username must be at least 3 characters")
+                value.length > 50 -> ValidationResult(false, "Username must not exceed 50 characters")
+                else -> ValidationResult(true)
+            }
+        }
+        "Email" -> {
+            when {
+                value.isBlank() -> ValidationResult(false, "Please enter your email")
+                !android.util.Patterns.EMAIL_ADDRESS.matcher(value).matches() -> {
+                    ValidationResult(false, "Please enter a valid email")
+                }
+                else -> ValidationResult(true)
+            }
+        }
+        "Phone" -> {
+            when {
+                value.isBlank() -> ValidationResult(false, "Please enter your phone number")
+                value.length < 10 -> ValidationResult(false, "Phone number must be at least 10 digits")
+                value.length > 20 -> ValidationResult(false, "Phone number must not exceed 20 characters")
+                else -> ValidationResult(true)
+            }
+        }
+        else -> ValidationResult(true)
     }
 }
 

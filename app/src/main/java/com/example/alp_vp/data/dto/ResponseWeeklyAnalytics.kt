@@ -22,12 +22,3 @@ data class MetricAnalysisDto(
     val target: Double,
     val percentage: Int
 )
-
-data class TodayActivityResponse(
-    val id: Int,
-    val date: String,
-    val steps: Int,
-    val sleep_hours: Int,
-    val calories: Int,
-    val user_id: Int
-)

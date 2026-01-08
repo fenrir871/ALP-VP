@@ -1,34 +1,34 @@
 package com.example.alp_vp.data.repository
 
 import com.example.alp_vp.data.service.DailyActivityService
-import com.example.alp_vp.data.dto.CreateTodayActivityRequest
-import com.example.alp_vp.data.dto.TodayActivityResponse
-import com.example.alp_vp.data.dto.UpdateTodayActivityRequest
+import com.example.alp_vp.data.dto.CreateDailyActivityRequest
+import com.example.alp_vp.data.dto.DailyActivityResponse
+import com.example.alp_vp.data.dto.UpdateDailyActivityRequest
 import retrofit2.Response
 
 class DailyActivityRepository(private val service: DailyActivityService) {
 
-    suspend fun getAllTodayActivities(): Response<List<TodayActivityResponse>> {
-        return service.getAllTodayActivities()
+    suspend fun getAllDailyActivities(): Response<List<DailyActivityResponse>> {
+        return service.getAllDailyActivities()
     }
 
-    suspend fun getTodayActivityById(id: Int): Response<TodayActivityResponse> {
-        return service.getTodayActivityById(id)
+    suspend fun getDailyActivityById(id: Int): Response<DailyActivityResponse> {
+        return service.getDailyActivityById(id)
     }
 
-    suspend fun getTodayActivitiesByUserId(userId: Int): Response<List<TodayActivityResponse>> {
-        return service.getTodayActivitiesByUserId(userId)
+    suspend fun getDailyActivitiesByUserId(userId: Int): Response<List<DailyActivityResponse>> {
+        return service.getDailyActivitiesByUserId(userId)
     }
 
-    suspend fun createTodayActivity(request: CreateTodayActivityRequest): Response<TodayActivityResponse> {
-        return service.createTodayActivity(request)
+    suspend fun createDailyActivity(request: CreateDailyActivityRequest): Response<DailyActivityResponse> {
+        return service.createDailyActivity(request)
     }
 
-    suspend fun updateTodayActivity(id: Int, request: UpdateTodayActivityRequest): Response<TodayActivityResponse> {
-        return service.updateTodayActivity(id, request)
+    suspend fun updateDailyActivity(id: Int, request: UpdateDailyActivityRequest): Response<DailyActivityResponse> {
+        return service.updateDailyActivity(id, request)
     }
 
-    suspend fun deleteTodayActivity(id: Int): Response<Unit> {
-        return service.deleteTodayActivity(id)
+    suspend fun deleteDailyActivity(id: Int): Response<Unit> {
+        return service.deleteDailyActivity(id)
     }
 }

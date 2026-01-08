@@ -20,21 +20,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
 import com.example.alp_vp.ui.viewmodel.HomeViewModel
+import androidx.navigation.NavController
+import com.example.alp_vp.ui.viewmodel.WeeklyViewModel
+import kotlin.toString
 
 @Composable
 fun HomeView(
-    viewModel: HomeViewModel = viewModel(),
-    dailyActivityViewModel: DailyActivityViewModel = viewModel(),
-    dateLabel: String = "Wednesday, December 3, 2024",
-    streakDays: Int = 5,
-    avgScore: Int = 0,
-    goalsDone: Int = 3,
-    goalsTotal: Int = 4
+    navController: NavController,
+    viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(LocalContext.current)),
+    dailyActivityViewModel: DailyActivityViewModel = viewModel(factory = DailyActivityViewModel.Factory(LocalContext.current)),
+    weeklyViewModel: WeeklyViewModel = viewModel(factory = WeeklyViewModel.Factory(LocalContext.current))
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val weeklyStats by weeklyViewModel.weeklyStats.collectAsState()
 
     val sleepHours by dailyActivityViewModel._sleepHours.collectAsState()
     val waterGlasses by dailyActivityViewModel._waterGlasses.collectAsState()
@@ -51,6 +53,14 @@ fun HomeView(
     val stepsMessage by dailyActivityViewModel._stepsMessage.collectAsState()
     val caloriesMessage by dailyActivityViewModel._caloriesMessage.collectAsState()
 
+    LaunchedEffect(sleepScore, waterScore, stepsScore, caloriesScore) {
+        viewModel.updateStats(sleepScore, waterScore, stepsScore, caloriesScore)
+    }
+
+    LaunchedEffect(Unit) {
+        weeklyViewModel.fetchWeeklySummary(userId = 1)
+    }
+
     Surface(color = Color(0xFFF3F6FB), modifier = Modifier.fillMaxSize()) {
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -63,18 +73,21 @@ fun HomeView(
                     start = 16.dp,
                     end = 16.dp,
                     top = 12.dp,
-                    bottom = 120.dp  // Extra padding for bottom navigation bar
+                    bottom = 120.dp
                 ),
-                modifier = Modifier.fillMaxSize()
-            ) {
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding()
+                    .statusBarsPadding()
+            ){
                 item {
                     HeaderCard(
                         username = uiState.username,
-                        dateLabel = dateLabel,
-                        streakDays = streakDays,
-                        avgScore = avgScore,
-                        goalsDone = goalsDone,
-                        goalsTotal = goalsTotal
+                        dateLabel = uiState.currentDate,  // Change this line
+                        streakDays = uiState.streakDays,
+                        avgScore = uiState.avgScore,
+                        goalsDone = uiState.goalsCompleted,
+                        goalsTotal = uiState.goalsTotal
                     )
                 }
                 item {
@@ -107,13 +120,21 @@ fun HomeView(
                     )
                 }
                 item {
-                    WeeklySummarySection()
+                    WeeklySummarySection(
+                        sleepAvg = weeklyStats.sleepAvg,
+                        sleepScore = weeklyStats.sleepScore,
+                        waterAvg = weeklyStats.waterAvg,
+                        waterScore = weeklyStats.waterScore,
+                        stepsAvg = weeklyStats.stepsAvg,
+                        stepsScore = weeklyStats.stepsScore,
+                        caloriesAvg = weeklyStats.caloriesAvg,
+                        caloriesScore = weeklyStats.caloriesScore
+                    )
                 }
             }
         }
     }
 }
-
 @Composable
 private fun InputDataCard(
     sleepHours: String,
@@ -250,6 +271,9 @@ private fun InputRowField(
         }
     }
 }
+
+
+
 
 @Composable
 private fun HeaderCard(
@@ -584,6 +608,9 @@ private fun ProgressBar(current: Int, max: Int, barColor: Color, modifier: Modif
     }
 }
 
+
+
+
 @Composable
 fun WeeklySummarySection(
     sleepAvg: Float? = null,
@@ -647,7 +674,6 @@ fun WeeklySummarySection(
         }
     }
 }
-
 @Composable
 private fun WeeklySummaryCard(
     icon: ImageVector,
@@ -661,7 +687,8 @@ private fun WeeklySummaryCard(
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = bg),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -722,6 +749,10 @@ private fun WeeklySummaryCard(
         }
     }
 }
+
+
+
+
 
 @Composable
 @Preview

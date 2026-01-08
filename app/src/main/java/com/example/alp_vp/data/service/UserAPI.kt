@@ -1,22 +1,23 @@
 package com.example.alp_vp.data.service
 
-import com.example.alp_vp.data.dto.RequestLogin
-import com.example.alp_vp.data.dto.RequestRegister
-import com.example.alp_vp.data.dto.ResponseToken
-import com.example.alp_vp.data.dto.ResponseUser
+import com.example.alp_vp.ui.model.UserModel
 import retrofit2.Response
 import retrofit2.http.*
 
-interface UserAPI {
-    @POST("auth/register")
-    suspend fun register(@Body request: RequestRegister): Response<ResponseToken>
+data class LoginRequest(val email: String, val password: String)
+data class LoginResponse(val success: Boolean, val data: UserModel?, val message: String? = null)
+data class RegisterResponse(val success: Boolean, val data: UserModel?, val message: String? = null)
 
-    @POST("auth/login")
-    suspend fun login(@Body credentials: RequestLogin): Response<ResponseToken>
+interface UserAPI {
+    @POST("api/register")
+    suspend fun register(@Body user: UserModel): Response<RegisterResponse>
+
+    @POST("api/login")
+    suspend fun login(@Body credentials: LoginRequest): Response<LoginResponse>
 
     @GET("api/users/{id}")
-    suspend fun getUserById(@Path("id") userId: Int): Response<ResponseUser>
+    suspend fun getUserById(@Path("id") userId: Int): Response<UserModel>
 
     @GET("api/users/email/{email}")
-    suspend fun getUserByEmail(@Path("email") email: String): Response<ResponseUser>
+    suspend fun getUserByEmail(@Path("email") email: String): Response<UserModel>
 }

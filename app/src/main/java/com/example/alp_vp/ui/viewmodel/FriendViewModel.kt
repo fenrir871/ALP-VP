@@ -17,9 +17,6 @@ class FriendViewModel(context: Context) : ViewModel() {
     private val _leaderboard = MutableStateFlow<List<Friend>>(emptyList())
     val leaderboard: StateFlow<List<Friend>> = _leaderboard.asStateFlow()
 
-    private val _allFriends = MutableStateFlow<List<Friend>>(emptyList())
-    val allFriends: StateFlow<List<Friend>> = _allFriends.asStateFlow()
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -29,73 +26,67 @@ class FriendViewModel(context: Context) : ViewModel() {
     private val _successMessage = MutableStateFlow<String?>(null)
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
 
-    fun loadAllFriends() {
+    /**
+     * Load friend leaderboard from API
+     */
+    fun loadLeaderboard() {
         viewModelScope.launch {
             _isLoading.value = true
-            try {
-                val result = repository.getAllFriends()
-                _allFriends.value = result
-            } catch (e: Exception) {
-                _errorMessage.value = e.message
+            _errorMessage.value = null
+
+            val result = repository.getFriendLeaderboard()
+            result.onSuccess { friends ->
+                _leaderboard.value = friends
+                _isLoading.value = false
+            }.onFailure { error ->
+                _errorMessage.value = error.message
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
 
-    fun loadLeaderboard(userName: String, username: String, userScore: Int) {
+    /**
+     * Add a friend (send friend request)
+     */
+    fun addFriend(friendId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
-            try {
-                val result = repository.getLeaderboard(userName, username, userScore)
-                _leaderboard.value = result
-            } catch (e: Exception) {
-                _errorMessage.value = e.message
+            _errorMessage.value = null
+
+            val result = repository.addFriend(friendId)
+            result.onSuccess { message ->
+                _successMessage.value = message
+                _isLoading.value = false
+            }.onFailure { error ->
+                _errorMessage.value = error.message
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
 
-    fun searchFriends(query: String) {
+    /**
+     * Accept a friend request
+     */
+    fun acceptFriendRequest(requestId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
-            try {
-                val result = repository.searchFriends(query)
-                _allFriends.value = result
-            } catch (e: Exception) {
-                _errorMessage.value = e.message
+            _errorMessage.value = null
+
+            val result = repository.acceptFriendRequest(requestId)
+            result.onSuccess { message ->
+                _successMessage.value = message
+                loadLeaderboard() // Reload leaderboard after accepting
+                _isLoading.value = false
+            }.onFailure { error ->
+                _errorMessage.value = error.message
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
 
-    fun addFriend(friend: Friend) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                repository.addFriend(friend)
-                _successMessage.value = "Friend added successfully!"
-                loadAllFriends() // Reload the list
-            } catch (e: Exception) {
-                _errorMessage.value = e.message
-            }
-            _isLoading.value = false
-        }
-    }
-
-    fun removeFriend(friendId: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                repository.removeFriend(friendId)
-                _successMessage.value = "Friend removed"
-                loadAllFriends() // Reload the list
-            } catch (e: Exception) {
-                _errorMessage.value = e.message
-            }
-            _isLoading.value = false
-        }
-    }
-
+    /**
+     * Clear success and error messages
+     */
     fun clearMessages() {
         _errorMessage.value = null
         _successMessage.value = null

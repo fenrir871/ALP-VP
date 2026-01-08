@@ -1,8 +1,12 @@
 package com.example.alp_vp.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.alp_vp.data.repository.DailyActivityRepository
+import com.example.alp_vp.data.repository.UserRepository
+import com.example.alp_vp.data.container.DailyActivityContainer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -23,7 +27,8 @@ data class UiState(
 
 
 class DailyActivityViewModel(
-    private val repository: DailyActivityRepository
+    private val repository: DailyActivityRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     // UI State
     private val _uiState = MutableStateFlow(UiState())
@@ -50,30 +55,87 @@ class DailyActivityViewModel(
     val _calories = MutableStateFlow(0)
     val _avgScore = MutableStateFlow(0)
 
-    fun onSleepChange(value: String) {
-        val hours = value.toFloatOrNull() ?: 0f
-        _sleepHours.value = hours
-        _uiState.value = _uiState.value.copy(sleepHours = value)
-        calculateSleepScore(hours)
+    // In DailyActivityViewModel.kt
+    fun onWaterChange(input: String) {
+        val cleanInput = input.trimStart('0').ifEmpty { "0" }
+        val parsed = cleanInput.toIntOrNull() ?: 0
+
+        when {
+            parsed < 0 -> {
+                _waterMessage.value = "Invalid: Water glasses cannot be negative"
+                _waterScore.value = 0f
+            }
+            parsed > 30 -> {
+                _waterMessage.value = "Invalid: That's too much water (max: 30 glasses)"
+                _waterScore.value = 0f
+            }
+            else -> {
+                _waterGlasses.value = parsed
+                calculateWaterScore(parsed)
+            }
+        }
     }
-    fun onWaterChange(value: String) {
-        val glasses = value.toIntOrNull() ?: 0
-        _waterGlasses.value = glasses
-        _uiState.value = _uiState.value.copy(waterGlasses = value)
-        calculateWaterScore(glasses)
+
+    fun onStepsChange(input: String) {
+        val cleanInput = input.trimStart('0').ifEmpty { "0" }
+        val parsed = cleanInput.toIntOrNull() ?: 0
+
+        when {
+            parsed < 0 -> {
+                _stepsMessage.value = "Invalid: Steps cannot be negative"
+                _stepsScore.value = 0f
+            }
+            parsed > 50000 -> {
+                _stepsMessage.value = "Invalid: That's too many steps (max: 50,000)"
+                _stepsScore.value = 0f
+            }
+            else -> {
+                _steps.value = parsed
+                calculateStepsScore(parsed.toFloat())
+            }
+        }
     }
-    fun onStepsChange(value: String) {
-        val steps = value.toIntOrNull() ?: 0
-        _steps.value = steps
-        _uiState.value = _uiState.value.copy(steps = value)
-        calculateStepsScore(steps.toFloat())
+
+    fun onCaloriesChange(input: String) {
+        val cleanInput = input.trimStart('0').ifEmpty { "0" }
+        val parsed = cleanInput.toIntOrNull() ?: 0
+
+        when {
+            parsed < 0 -> {
+                _caloriesMessage.value = "Invalid: Calories cannot be negative"
+                _caloriesScore.value = 0f
+            }
+            parsed > 10000 -> {
+                _caloriesMessage.value = "Invalid: That's too many calories (max: 10,000)"
+                _caloriesScore.value = 0f
+            }
+            else -> {
+                _calories.value = parsed
+                calculateCaloriesScore(parsed.toFloat())
+            }
+        }
     }
-    fun onCaloriesChange(value: String) {
-        val calories = value.toIntOrNull() ?: 0
-        _calories.value = calories
-        _uiState.value = _uiState.value.copy(calories = value)
-        calculateCaloriesScore(calories.toFloat())
+
+    fun onSleepChange(input: String) {
+        val cleanInput = input.trimStart('0').ifEmpty { "0" }
+        val parsed = cleanInput.toFloatOrNull() ?: 0f
+
+        when {
+            parsed < 0 -> {
+                _sleepMessage.value = "Invalid: Sleep hours cannot be negative"
+                _sleepScore.value = 0f
+            }
+            parsed > 24 -> {
+                _sleepMessage.value = "Invalid: Sleep cannot exceed 24 hours"
+                _sleepScore.value = 0f
+            }
+            else -> {
+                _sleepHours.value = parsed
+                calculateSleepScore(parsed)
+            }
+        }
     }
+
     fun calculateSleepScore(hours: Float) {
         val score: Float
         val message: String
@@ -144,14 +206,21 @@ class DailyActivityViewModel(
     }
 
     fun calculateTotalScore(): Float {
-        return _sleepScore.value + _waterScore.value + _stepsScore.value + _caloriesScore.value
+        // Each category is 0-20, but we need 0-25 for total of 100
+        // So multiply by 2.5 (20 * 2.5 = 50, but we want 25, so 10 * 2.5 = 25)
+        // Since display shows 0-10 (which is score/2), actual conversion is score * 1.25
+        val sleepPoints = _sleepScore.value * 1.25f  // 20 * 1.25 = 25
+        val waterPoints = _waterScore.value * 1.25f  // 20 * 1.25 = 25
+        val stepsPoints = _stepsScore.value * 1.25f  // 20 * 1.25 = 25
+        val caloriesPoints = _caloriesScore.value * 1.25f  // 20 * 1.25 = 25
+        return sleepPoints + waterPoints + stepsPoints + caloriesPoints  // Max: 100
     }
 
     fun loadTodayData() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val activities = repository.getAllTodayActivities()
+                val activities = repository.getAllDailyActivities()
                 calculateAllScores()
             } catch (e: Exception) {
                 _error.value = e.message
@@ -167,5 +236,21 @@ class DailyActivityViewModel(
         calculateStepsScore(_steps.value.toFloat())
         calculateCaloriesScore(_calories.value.toFloat())
         _avgScore.value = calculateTotalScore().toInt()
+    }
+
+    private fun updateHighestScoreIfNeeded() {
+        val totalScore = calculateTotalScore().toInt()
+        userRepository.updateHighestScore(totalScore)
+    }
+
+    companion object {
+        fun Factory(context: Context): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val container = DailyActivityContainer()
+                val userRepository = UserRepository(context)
+                return DailyActivityViewModel(container.dailyActivityRepository, userRepository) as T
+            }
+        }
     }
 }
