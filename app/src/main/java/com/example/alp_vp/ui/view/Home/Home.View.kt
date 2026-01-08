@@ -91,15 +91,7 @@ fun HomeView(
                     .statusBarsPadding()
             ){
 
-                item {
-                    Text(
-                        text = "Quick Access",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1D26),
-                        modifier = Modifier.padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
-                    )
-                }
+
 
                 item {
                     InputDataCard(
@@ -127,15 +119,7 @@ fun HomeView(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                item {
-                    Text(
-                        text = "Quick Access",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1D26),
-                        modifier = Modifier.padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
-                    )
-                }
+
 
 
 

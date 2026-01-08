@@ -10,7 +10,7 @@ import kotlin.getValue
 
 class DailyActivityContainer {
     companion object {
-        const val BASE_URL = "http://10.14.251.74/" // For Physical Device (same WiFi)
+        const val BASE_URL = "http://10.14.251.74:3000/" // For Physical Device (same WiFi)
     }
 
     private val client = OkHttpClient.Builder()
