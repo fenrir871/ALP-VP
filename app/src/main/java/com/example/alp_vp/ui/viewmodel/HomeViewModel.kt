@@ -16,7 +16,7 @@ import java.util.*
 
 data class HomeUiState(
     val username: String = "",
-    val currentDate: String = getCurrentFormattedDate(),  // Not currentDateLabel
+    val currentDate: String = getCurrentFormattedDate(),
     val streakDays: Int = 0,
     val avgScore: Int = 0,
     val goalsCompleted: Int = 0,
@@ -24,6 +24,7 @@ data class HomeUiState(
     val isLoading: Boolean = true,
     val error: String? = null
 )
+
 private fun getCurrentFormattedDate(): String {
     val dateFormat = SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault())
     return dateFormat.format(Date())
@@ -38,17 +39,24 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    private val _todayScore = MutableStateFlow(0)
+    val todayScore: StateFlow<Int> = _todayScore
+
     init {
         loadUserData()
         loadStreakData()
+        loadTodayScore()
     }
 
     private fun loadUserData() {
         viewModelScope.launch {
             try {
                 val user = userRepository.getCurrentUser()
+                val highestScore = userRepository.getHighestScore()
+
                 _uiState.value = _uiState.value.copy(
                     username = user?.fullName ?: "Guest",
+                    avgScore = highestScore,
                     isLoading = false
                 )
             } catch (e: Exception) {
@@ -67,6 +75,10 @@ class HomeViewModel(
                 streakDays = streak
             )
         }
+    }
+
+    private fun loadTodayScore() {
+        _todayScore.value = userRepository.getTodayScore()
     }
 
     fun updateStats(

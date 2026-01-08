@@ -9,6 +9,8 @@ import com.example.alp_vp.ui.model.UserModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import kotlin.apply
+import kotlin.text.contains
 
 class UserRepository(context: Context) {
     private val prefs: SharedPreferences =
@@ -122,6 +124,18 @@ class UserRepository(context: Context) {
         val isLoggedIn = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
         if (!isLoggedIn) return null
         return getUserData()
+    }
+
+    fun saveTodayScore(score: Int) {
+        prefs.edit().putInt("today_score", score).apply()
+    }
+
+    fun getTodayScore(): Int {
+        return prefs.getInt("today_score", 0)
+    }
+
+    fun hasTodayScore(): Boolean {
+        return prefs.contains("today_score")
     }
 
     private fun getUserData(): UserModel? {

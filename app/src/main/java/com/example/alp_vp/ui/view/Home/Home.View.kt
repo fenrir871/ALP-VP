@@ -1,6 +1,7 @@
 package com.example.alp_vp.ui.view.Home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,12 +21,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alp_vp.ui.viewmodel.DailyActivityViewModel
 import com.example.alp_vp.ui.viewmodel.HomeViewModel
 import androidx.navigation.NavController
 import com.example.alp_vp.ui.viewmodel.WeeklyViewModel
+import kotlin.compareTo
+
 import kotlin.toString
 
 @Composable
@@ -37,6 +41,9 @@ fun HomeView(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val weeklyStats by weeklyViewModel.weeklyStats.collectAsState()
+
+    val todayScore by viewModel.todayScore.collectAsState()
+    val hasTodayScore = todayScore > 0
 
     val sleepHours by dailyActivityViewModel._sleepHours.collectAsState()
     val waterGlasses by dailyActivityViewModel._waterGlasses.collectAsState()
@@ -52,6 +59,9 @@ fun HomeView(
     val waterMessage by dailyActivityViewModel._waterMessage.collectAsState()
     val stepsMessage by dailyActivityViewModel._stepsMessage.collectAsState()
     val caloriesMessage by dailyActivityViewModel._caloriesMessage.collectAsState()
+
+    val calculatedScore by dailyActivityViewModel.calculatedScore.collectAsState()
+    val showCalculatedScore by dailyActivityViewModel.showCalculatedScore.collectAsState()
 
     LaunchedEffect(sleepScore, waterScore, stepsScore, caloriesScore) {
         viewModel.updateStats(sleepScore, waterScore, stepsScore, caloriesScore)
@@ -80,6 +90,62 @@ fun HomeView(
                     .navigationBarsPadding()
                     .statusBarsPadding()
             ){
+
+                item {
+                    Text(
+                        text = "Quick Access",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1D26),
+                        modifier = Modifier.padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
+                    )
+                }
+
+                item {
+                    InputDataCard(
+                        sleepHours = sleepHours,
+                        waterGlasses = waterGlasses,
+                        steps = steps,
+                        calories = calories,
+                        sleepScore = sleepScore,
+                        waterScore = waterScore,
+                        stepsScore = stepsScore,
+                        caloriesScore = caloriesScore,
+                        sleepMessage = sleepMessage,
+                        waterMessage = waterMessage,
+                        stepsMessage = stepsMessage,
+                        caloriesMessage = caloriesMessage,
+                        calculatedScore = calculatedScore,
+                        showCalculatedScore = showCalculatedScore,
+                        onSleepChange = { dailyActivityViewModel.onSleepChange(it) },
+                        onWaterChange = { dailyActivityViewModel.onWaterChange(it) },
+                        onStepsChange = { dailyActivityViewModel.onStepsChange(it) },
+                        onCaloriesChange = { dailyActivityViewModel.onCaloriesChange(it) },
+                        onCalculateScore = { dailyActivityViewModel.onCalculateScore() },
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                item {
+                    Text(
+                        text = "Quick Access",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1D26),
+                        modifier = Modifier.padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
+                    )
+                }
+
+
+
+                item {
+                    DailyActivityCard(
+                        todayScore = todayScore,
+                        hasTodayScore = hasTodayScore,
+                        onNavigateToDailyActivity = { navController.navigate("dailyActivity") },
+                    )
+                }
                 item {
                     HeaderCard(
                         username = uiState.username,
@@ -101,23 +167,28 @@ fun HomeView(
                 }
                 item {
                     InputDataCard(
-                        sleepHours = sleepHours.toString(),
-                        waterGlasses = waterGlasses.toString(),
-                        steps = steps.toString(),
-                        calories = calories.toString(),
+                        sleepHours = sleepHours,
+                        waterGlasses = waterGlasses,
+                        steps = steps,
+                        calories = calories,
+                        sleepScore = sleepScore,
+                        waterScore = waterScore,
+                        stepsScore = stepsScore,
+                        caloriesScore = caloriesScore,
+                        sleepMessage = sleepMessage,
+                        waterMessage = waterMessage,
+                        stepsMessage = stepsMessage,
+                        caloriesMessage = caloriesMessage,
+                        calculatedScore = calculatedScore,
+                        showCalculatedScore = showCalculatedScore,
                         onSleepChange = { dailyActivityViewModel.onSleepChange(it) },
                         onWaterChange = { dailyActivityViewModel.onWaterChange(it) },
                         onStepsChange = { dailyActivityViewModel.onStepsChange(it) },
                         onCaloriesChange = { dailyActivityViewModel.onCaloriesChange(it) },
-                        sleepScore = sleepScore,
-                        sleepMessage = sleepMessage,
-                        waterScore = waterScore,
-                        waterMessage = waterMessage,
-                        stepsScore = stepsScore,
-                        stepsMessage = stepsMessage,
-                        caloriesScore = caloriesScore,
-                        caloriesMessage = caloriesMessage
+                        onCalculateScore = { dailyActivityViewModel.onCalculateScore() },
+                        modifier = Modifier.padding(horizontal = 24.dp)
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
                 item {
                     WeeklySummarySection(
@@ -136,76 +207,219 @@ fun HomeView(
     }
 }
 @Composable
-private fun InputDataCard(
-    sleepHours: String,
-    waterGlasses: String,
-    steps: String,
-    calories: String,
+fun InputDataCard(
+    sleepHours: Float,
+    waterGlasses: Int,
+    steps: Int,
+    calories: Int,
+    sleepScore: Float,
+    waterScore: Float,
+    stepsScore: Float,
+    caloriesScore: Float,
+    sleepMessage: String,
+    waterMessage: String,
+    stepsMessage: String,
+    caloriesMessage: String,
+    calculatedScore: Float,
+    showCalculatedScore: Boolean,
     onSleepChange: (String) -> Unit,
     onWaterChange: (String) -> Unit,
     onStepsChange: (String) -> Unit,
     onCaloriesChange: (String) -> Unit,
-    sleepScore: Float,
-    sleepMessage: String,
-    waterScore: Float,
-    waterMessage: String,
-    stepsScore: Float,
-    stepsMessage: String,
-    caloriesScore: Float,
-    caloriesMessage: String
+    onCalculateScore: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        shape = RoundedCornerShape(22.dp),
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        modifier = Modifier.fillMaxWidth()
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
             Text(
                 text = "Input Your Data",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = Color(0xFF1E2A3A)
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1A1D26)
             )
-            Spacer(Modifier.height(12.dp))
 
-            InputRowField(
-                icon = Icons.Outlined.Hotel,
-                tint = Color(0xFF9B6BFF),
-                title = "Sleep (hours)",
-                value = sleepHours,
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Sleep Input
+            InputRow(
+                icon = Icons.Outlined.Bedtime,
+                label = "Sleep (hours)",
+                value = if (sleepHours == 0f) "" else sleepHours.toString(),
                 onValueChange = onSleepChange,
                 score = sleepScore,
-                message = sleepMessage
+                message = sleepMessage,
+                iconColor = Color(0xFF9C27B0)
             )
-            Divider(color = Color(0xFFEDEFF2), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
-            InputRowField(
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Water Input
+            InputRow(
                 icon = Icons.Outlined.WaterDrop,
-                tint = Color(0xFF3DA8FF),
-                title = "Water (glasses)",
-                value = waterGlasses,
+                label = "Water (glasses)",
+                value = if (waterGlasses == 0) "" else waterGlasses.toString(),
                 onValueChange = onWaterChange,
                 score = waterScore,
-                message = waterMessage
+                message = waterMessage,
+                iconColor = Color(0xFF2196F3)
             )
-            Divider(color = Color(0xFFEDEFF2), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
-            InputRowField(
-                icon = Icons.Outlined.DirectionsRun,
-                tint = Color(0xFFFF7A3D),
-                title = "Steps",
-                value = steps,
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Steps Input
+            InputRow(
+                icon = Icons.Outlined.DirectionsWalk,
+                label = "Steps",
+                value = if (steps == 0) "" else steps.toString(),
                 onValueChange = onStepsChange,
                 score = stepsScore,
-                message = stepsMessage
+                message = stepsMessage,
+                iconColor = Color(0xFFFF5722)
             )
-            Divider(color = Color(0xFFEDEFF2), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
-            InputRowField(
-                icon = Icons.Outlined.FavoriteBorder,
-                tint = Color(0xFFFF5A7A),
-                title = "Calories",
-                value = calories,
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Calories Input
+            InputRow(
+                icon = Icons.Outlined.LocalFireDepartment,
+                label = "Calories",
+                value = if (calories == 0) "" else calories.toString(),
                 onValueChange = onCaloriesChange,
                 score = caloriesScore,
-                message = caloriesMessage
+                message = caloriesMessage,
+                iconColor = Color(0xFFFF9800)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Calculate Button
+            Button(
+                onClick = onCalculateScore,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF2A7DE1)
+                )
+            ) {
+                Text(
+                    text = "Calculate Average Score",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            // Show calculated score
+            if (showCalculatedScore) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFE8F5E9)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Your Average Score",
+                            fontSize = 14.sp,
+                            color = Color(0xFF1B5E20)
+                        )
+
+                        Text(
+                            text = String.format("%.1f", calculatedScore),
+                            fontSize = 36.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF4CAF50)
+                        )
+
+                        Text(
+                            text = "out of 100",
+                            fontSize = 12.sp,
+                            color = Color(0xFF1B5E20)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+@Composable
+private fun InputRow(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    score: Float,
+    message: String,
+    iconColor: Color
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = iconColor,
+                modifier = Modifier.size(24.dp)
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = label,
+                    fontSize = 14.sp,
+                    color = Color(0xFF757575)
+                )
+
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = iconColor,
+                        unfocusedBorderColor = Color(0xFFE0E0E0)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+        }
+
+        if (message.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = message,
+                fontSize = 12.sp,
+                color = when {
+                    message.contains("Invalid") -> Color(0xFFE53935)
+                    score >= 15f -> Color(0xFF4CAF50)
+                    else -> Color(0xFFFF9800)
+                },
+                modifier = Modifier.padding(start = 36.dp)
             )
         }
     }
@@ -411,6 +625,97 @@ private fun StatPill(icon: ImageVector, label: String, value: String) {
         }
     }
 }
+
+
+// In Home.kt, update the DailyActivityCard
+@Composable
+fun DailyActivityCard(
+    todayScore: Int,
+    hasTodayScore: Boolean,
+    onNavigateToDailyActivity: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onNavigateToDailyActivity() },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Icon
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFFE3F2FD)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Assessment,
+                    contentDescription = "Daily Activity",
+                    tint = Color(0xFF2A7DE1),
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Content
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Daily Activity",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF1A1D26)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                if (hasTodayScore) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Today's Score: ",
+                            fontSize = 13.sp,
+                            color = Color(0xFF757575)
+                        )
+                        Text(
+                            text = "$todayScore",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF4CAF50)
+                        )
+                        Text(
+                            text = "/100",
+                            fontSize = 13.sp,
+                            color = Color(0xFF757575)
+                        )
+                    }
+                } else {
+                    Text(
+                        text = "Track your health metrics",
+                        fontSize = 13.sp,
+                        color = Color(0xFF757575)
+                    )
+                }
+            }
+
+            // Arrow icon
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "Go to Daily Activity",
+                tint = Color(0xFF2A7DE1),
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
 
 @Composable
 private fun ProgressCard(

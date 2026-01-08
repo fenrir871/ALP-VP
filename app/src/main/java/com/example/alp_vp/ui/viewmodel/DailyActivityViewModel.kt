@@ -1,5 +1,6 @@
 package com.example.alp_vp.ui.viewmodel
 
+
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -54,7 +55,11 @@ class DailyActivityViewModel(
     val _steps = MutableStateFlow(0)
     val _calories = MutableStateFlow(0)
     val _avgScore = MutableStateFlow(0)
+    private val _showCalculatedScore = MutableStateFlow(false)
+    val showCalculatedScore: StateFlow<Boolean> = _showCalculatedScore
 
+    private val _calculatedScore = MutableStateFlow(0f)
+    val calculatedScore: StateFlow<Float> = _calculatedScore
     // In DailyActivityViewModel.kt
     fun onWaterChange(input: String) {
         val cleanInput = input.trimStart('0').ifEmpty { "0" }
@@ -163,6 +168,23 @@ class DailyActivityViewModel(
         _sleepMessage.value = message
     }
 
+
+
+        fun onCalculateScore() {
+            calculateAllScores()
+            val totalScore = calculateTotalScore()
+            _calculatedScore.value = totalScore
+            _showCalculatedScore.value = true
+
+            // Save the score to UserRepository
+            userRepository.updateHighestScore(totalScore.toInt())
+            userRepository.saveTodayScore(totalScore.toInt())
+        }
+    fun resetCalculation() {
+        _showCalculatedScore.value = false
+        _calculatedScore.value = 0f
+    }
+
     fun calculateWaterScore(glasses: Int) {
         val score = (glasses.toFloat() / 8) * 20
         val finalScore = if (score >= 20) 20f else score
@@ -229,6 +251,7 @@ class DailyActivityViewModel(
             }
         }
     }
+
 
     private fun calculateAllScores() {
         calculateSleepScore(_sleepHours.value)
