@@ -91,15 +91,7 @@ fun HomeView(
                     .statusBarsPadding()
             ){
 
-                item {
-                    Text(
-                        text = "Quick Access",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1D26),
-                        modifier = Modifier.padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
-                    )
-                }
+
 
                 item {
                     InputDataCard(
@@ -127,15 +119,7 @@ fun HomeView(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                item {
-                    Text(
-                        text = "Quick Access",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1D26),
-                        modifier = Modifier.padding(start = 24.dp, top = 24.dp, bottom = 16.dp)
-                    )
-                }
+
 
 
 
@@ -247,7 +231,7 @@ fun InputDataCard(
                 color = Color(0xFF1A1D26)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Sleep Input
             InputRow(
@@ -260,7 +244,7 @@ fun InputDataCard(
                 iconColor = Color(0xFF9C27B0)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Water Input
             InputRow(
@@ -273,7 +257,7 @@ fun InputDataCard(
                 iconColor = Color(0xFF2196F3)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Steps Input
             InputRow(
@@ -283,10 +267,10 @@ fun InputDataCard(
                 onValueChange = onStepsChange,
                 score = stepsScore,
                 message = stepsMessage,
-                iconColor = Color(0xFFFF5722)
+                iconColor = Color(0xFFFF9800)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Calories Input
             InputRow(
@@ -296,7 +280,7 @@ fun InputDataCard(
                 onValueChange = onCaloriesChange,
                 score = caloriesScore,
                 message = caloriesMessage,
-                iconColor = Color(0xFFFF9800)
+                iconColor = Color(0xFFF44336)
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -306,10 +290,14 @@ fun InputDataCard(
                 onClick = onCalculateScore,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
+                    .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF2A7DE1)
+                ),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 2.dp,
+                    pressedElevation = 4.dp
                 )
             ) {
                 Text(
@@ -319,40 +307,46 @@ fun InputDataCard(
                 )
             }
 
-            // Show calculated score
+            // Show calculated score if available
             if (showCalculatedScore) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFFE8F5E9)
-                    )
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             text = "Your Average Score",
                             fontSize = 14.sp,
-                            color = Color(0xFF1B5E20)
+                            color = Color(0xFF2E7D32),
+                            fontWeight = FontWeight.Medium
                         )
+
+                        Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
                             text = String.format("%.1f", calculatedScore),
-                            fontSize = 36.sp,
+                            fontSize = 42.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF4CAF50)
                         )
 
+                        Spacer(modifier = Modifier.height(4.dp))
+
                         Text(
                             text = "out of 100",
-                            fontSize = 12.sp,
-                            color = Color(0xFF1B5E20)
+                            fontSize = 13.sp,
+                            color = Color(0xFF2E7D32)
                         )
                     }
                 }
@@ -378,49 +372,62 @@ private fun InputRow(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                tint = iconColor,
-                modifier = Modifier.size(24.dp)
-            )
+            // Icon with background (matching other cards)
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(iconColor.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = label,
+                    tint = iconColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = label,
-                    fontSize = 14.sp,
-                    color = Color(0xFF757575)
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                label = {
+                    Text(
+                        label,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 56.dp),
+                singleLine = true,
+                shape = RoundedCornerShape(14.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = iconColor,
+                    focusedLabelColor = iconColor,
+                    cursorColor = iconColor,
+                    unfocusedBorderColor = Color(0xFFE0E0E0)
                 )
-
-                OutlinedTextField(
-                    value = value,
-                    onValueChange = onValueChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = iconColor,
-                        unfocusedBorderColor = Color(0xFFE0E0E0)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                )
-            }
+            )
         }
 
         if (message.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            Text(
-                text = message,
-                fontSize = 12.sp,
-                color = when {
-                    message.contains("Invalid") -> Color(0xFFE53935)
-                    score >= 15f -> Color(0xFF4CAF50)
-                    else -> Color(0xFFFF9800)
-                },
-                modifier = Modifier.padding(start = 36.dp)
-            )
+            Row(
+                modifier = Modifier.padding(start = 60.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = message,
+                    fontSize = 12.sp,
+                    color = if (score >= 15f) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.example.alp_vp.ui.viewmodel
 
-
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -8,11 +7,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.alp_vp.data.repository.DailyActivityRepository
 import com.example.alp_vp.data.repository.UserRepository
 import com.example.alp_vp.data.container.DailyActivityContainer
+import com.example.alp_vp.data.dto.CreateDailyActivityRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.text.toInt
 
-// In UiState (change types to String)
 data class UiState(
     val username: String = "User",
     val dateLabel: String = "Today",
@@ -26,11 +26,11 @@ data class UiState(
     val sleepHours: String = ""
 )
 
-
 class DailyActivityViewModel(
     private val repository: DailyActivityRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
+
     // UI State
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
@@ -49,18 +49,20 @@ class DailyActivityViewModel(
     val _isLoading = MutableStateFlow(false)
     val _error = MutableStateFlow<String?>(null)
 
-    // For demo, use local state for activity values
+    // Activity values
     val _sleepHours = MutableStateFlow(0f)
     val _waterGlasses = MutableStateFlow(0)
     val _steps = MutableStateFlow(0)
     val _calories = MutableStateFlow(0)
     val _avgScore = MutableStateFlow(0)
+
     private val _showCalculatedScore = MutableStateFlow(false)
     val showCalculatedScore: StateFlow<Boolean> = _showCalculatedScore
 
     private val _calculatedScore = MutableStateFlow(0f)
     val calculatedScore: StateFlow<Float> = _calculatedScore
-    // In DailyActivityViewModel.kt
+
+    // Input handlers
     fun onWaterChange(input: String) {
         val cleanInput = input.trimStart('0').ifEmpty { "0" }
         val parsed = cleanInput.toIntOrNull() ?: 0
@@ -141,7 +143,8 @@ class DailyActivityViewModel(
         }
     }
 
-    fun calculateSleepScore(hours: Float) {
+    // Score calculation functions
+    private fun calculateSleepScore(hours: Float) {
         val score: Float
         val message: String
 
@@ -168,24 +171,7 @@ class DailyActivityViewModel(
         _sleepMessage.value = message
     }
 
-
-
-        fun onCalculateScore() {
-            calculateAllScores()
-            val totalScore = calculateTotalScore()
-            _calculatedScore.value = totalScore
-            _showCalculatedScore.value = true
-
-            // Save the score to UserRepository
-            userRepository.updateHighestScore(totalScore.toInt())
-            userRepository.saveTodayScore(totalScore.toInt())
-        }
-    fun resetCalculation() {
-        _showCalculatedScore.value = false
-        _calculatedScore.value = 0f
-    }
-
-    fun calculateWaterScore(glasses: Int) {
+    private fun calculateWaterScore(glasses: Int) {
         val score = (glasses.toFloat() / 8) * 20
         val finalScore = if (score >= 20) 20f else score
 
@@ -199,7 +185,7 @@ class DailyActivityViewModel(
         _waterMessage.value = message
     }
 
-    fun calculateStepsScore(steps: Float) {
+    private fun calculateStepsScore(steps: Float) {
         val score = (steps / 10000) * 20
         val finalScore = if (score >= 20) 20f else score
 
@@ -213,7 +199,7 @@ class DailyActivityViewModel(
         _stepsMessage.value = message
     }
 
-    fun calculateCaloriesScore(calories: Float) {
+    private fun calculateCaloriesScore(calories: Float) {
         val score = (calories / 2000) * 20
         val finalScore = if (score >= 20) 20f else score
 
@@ -227,31 +213,13 @@ class DailyActivityViewModel(
         _caloriesMessage.value = message
     }
 
-    fun calculateTotalScore(): Float {
-        // Each category is 0-20, but we need 0-25 for total of 100
-        // So multiply by 2.5 (20 * 2.5 = 50, but we want 25, so 10 * 2.5 = 25)
-        // Since display shows 0-10 (which is score/2), actual conversion is score * 1.25
-        val sleepPoints = _sleepScore.value * 1.25f  // 20 * 1.25 = 25
-        val waterPoints = _waterScore.value * 1.25f  // 20 * 1.25 = 25
-        val stepsPoints = _stepsScore.value * 1.25f  // 20 * 1.25 = 25
-        val caloriesPoints = _caloriesScore.value * 1.25f  // 20 * 1.25 = 25
-        return sleepPoints + waterPoints + stepsPoints + caloriesPoints  // Max: 100
+    private fun calculateTotalScore(): Float {
+        val sleepPoints = _sleepScore.value * 1.25f
+        val waterPoints = _waterScore.value * 1.25f
+        val stepsPoints = _stepsScore.value * 1.25f
+        val caloriesPoints = _caloriesScore.value * 1.25f
+        return sleepPoints + waterPoints + stepsPoints + caloriesPoints
     }
-
-    fun loadTodayData() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val activities = repository.getAllDailyActivities()
-                calculateAllScores()
-            } catch (e: Exception) {
-                _error.value = e.message
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
 
     private fun calculateAllScores() {
         calculateSleepScore(_sleepHours.value)
@@ -261,9 +229,44 @@ class DailyActivityViewModel(
         _avgScore.value = calculateTotalScore().toInt()
     }
 
-    private fun updateHighestScoreIfNeeded() {
-        val totalScore = calculateTotalScore().toInt()
-        userRepository.updateHighestScore(totalScore)
+    // Main calculation function
+    fun onCalculateScore() {
+        calculateAllScores()
+        val totalScore = calculateTotalScore()
+        _calculatedScore.value = totalScore
+        _showCalculatedScore.value = true
+
+        // Save to repository
+        viewModelScope.launch {
+            try {
+                val request = CreateDailyActivityRequest(
+                    date = getCurrentDate(),
+                    steps = _steps.value,
+                    sleepHours = _sleepHours.value.toInt(),  // Convert Float to Int if needed
+                    calories = _calories.value,
+                    waterGlasses = _waterGlasses.value,  // FIXED: removed underscore
+                    userId = userRepository.getCurrentUser()?.id ?: 1
+                )
+                repository.createDailyActivity(request)
+
+                // Update user scores
+                userRepository.updateHighestScore(totalScore.toInt())
+                userRepository.saveTodayScore(totalScore.toInt())
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+
+    fun resetCalculation() {
+        _showCalculatedScore.value = false
+        _calculatedScore.value = 0f
+    }
+
+    private fun getCurrentDate(): String {
+        val formatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+        return formatter.format(java.util.Date())
     }
 
     companion object {

@@ -6,5 +6,6 @@ data class DailyActivityModels(
     val steps: Int,
     val sleepHours: Float,
     val calories: Int,
+    val waterGlasses: Int,
     val userId: Int
 )

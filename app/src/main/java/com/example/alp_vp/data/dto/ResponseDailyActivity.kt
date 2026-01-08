@@ -6,5 +6,7 @@ data class DailyActivityResponse(
     val steps: Int,
     val sleepHours: Int,
     val calories: Int,
-    val userId: Int
+    val userId: Int,
+    val waterGlasses: Int,
+    val totalScore: Float
 )
