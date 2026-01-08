@@ -89,57 +89,21 @@ fun HomeView(
                     .fillMaxSize()
                     .navigationBarsPadding()
                     .statusBarsPadding()
-            ){
+            ) {
 
-
-
-                item {
-                    InputDataCard(
-                        sleepHours = sleepHours,
-                        waterGlasses = waterGlasses,
-                        steps = steps,
-                        calories = calories,
-                        sleepScore = sleepScore,
-                        waterScore = waterScore,
-                        stepsScore = stepsScore,
-                        caloriesScore = caloriesScore,
-                        sleepMessage = sleepMessage,
-                        waterMessage = waterMessage,
-                        stepsMessage = stepsMessage,
-                        caloriesMessage = caloriesMessage,
-                        calculatedScore = calculatedScore,
-                        showCalculatedScore = showCalculatedScore,
-                        onSleepChange = { dailyActivityViewModel.onSleepChange(it) },
-                        onWaterChange = { dailyActivityViewModel.onWaterChange(it) },
-                        onStepsChange = { dailyActivityViewModel.onStepsChange(it) },
-                        onCaloriesChange = { dailyActivityViewModel.onCaloriesChange(it) },
-                        onCalculateScore = { dailyActivityViewModel.onCalculateScore() },
-                        modifier = Modifier.padding(horizontal = 24.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-
-
-
-
-                item {
-                    DailyActivityCard(
-                        todayScore = todayScore,
-                        hasTodayScore = hasTodayScore,
-                        onNavigateToDailyActivity = { navController.navigate("dailyActivity") },
-                    )
-                }
+                // 1. Blue Header Card with user info
                 item {
                     HeaderCard(
                         username = uiState.username,
-                        dateLabel = uiState.currentDate,  // Change this line
+                        dateLabel = uiState.currentDate,
                         streakDays = uiState.streakDays,
                         avgScore = uiState.avgScore,
                         goalsDone = uiState.goalsCompleted,
                         goalsTotal = uiState.goalsTotal
                     )
                 }
+
+                // 2. Today's Progress Card
                 item {
                     ProgressCard(
                         steps = steps,
@@ -149,6 +113,8 @@ fun HomeView(
                         dailyActivityViewModel = dailyActivityViewModel
                     )
                 }
+
+                // 3. Input Your Data Card
                 item {
                     InputDataCard(
                         sleepHours = sleepHours,
@@ -169,11 +135,11 @@ fun HomeView(
                         onWaterChange = { dailyActivityViewModel.onWaterChange(it) },
                         onStepsChange = { dailyActivityViewModel.onStepsChange(it) },
                         onCaloriesChange = { dailyActivityViewModel.onCaloriesChange(it) },
-                        onCalculateScore = { dailyActivityViewModel.onCalculateScore() },
-                        modifier = Modifier.padding(horizontal = 24.dp)
+                        onCalculateScore = { dailyActivityViewModel.onCalculateScore() }
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
                 }
+
+                // 4. Weekly Summary Section
                 item {
                     WeeklySummarySection(
                         sleepAvg = weeklyStats.sleepAvg,
@@ -190,6 +156,7 @@ fun HomeView(
         }
     }
 }
+
 @Composable
 fun InputDataCard(
     sleepHours: Float,
